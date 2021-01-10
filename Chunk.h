@@ -28,8 +28,8 @@ public:
     Value readConstant(int offset) const;
     size_t constantCount() const;
 
-    //writes a line to the chunk and returns the offset it was added at
-    size_t writeLine(int line);
+    //writes a line to the chunk
+    void writeLine(int line);
 
     int readLine(int offset) const;
     size_t lineCount() const;
