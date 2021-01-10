@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/clox.dir/main.cpp.o CMakeFiles/clox.dir/Chunk.cpp.o CMakeFiles/clox.dir/DebugUtils.cpp.o CMakeFiles/clox.dir/LoxValue.cpp.o  -o clox 

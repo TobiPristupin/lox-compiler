@@ -1,0 +1,4 @@
+/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/test.dir
+/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir

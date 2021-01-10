@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pristu/Documents/cpp/clox/Chunk.h
+vector
+-
+cstdint
+-
+string
+-
+
+/home/pristu/Documents/cpp/clox/DebugUtils.cpp
+iostream
+-
+bitset
+-
+DebugUtils.h
+/home/pristu/Documents/cpp/clox/DebugUtils.h
+cstdint
+-
+
+/home/pristu/Documents/cpp/clox/DebugUtils.h
+Chunk.h
+/home/pristu/Documents/cpp/clox/Chunk.h
+
