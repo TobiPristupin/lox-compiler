@@ -217,6 +217,33 @@ LoxValue.cpp.s:
 	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/LoxValue.cpp.s
 .PHONY : LoxValue.cpp.s
 
+VM.o: VM.cpp.o
+
+.PHONY : VM.o
+
+# target to build an object file
+VM.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/VM.cpp.o
+.PHONY : VM.cpp.o
+
+VM.i: VM.cpp.i
+
+.PHONY : VM.i
+
+# target to preprocess a source file
+VM.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/VM.cpp.i
+.PHONY : VM.cpp.i
+
+VM.s: VM.cpp.s
+
+.PHONY : VM.s
+
+# target to generate assembly for a file
+VM.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/VM.cpp.s
+.PHONY : VM.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -290,6 +317,9 @@ help:
 	@echo "... LoxValue.o"
 	@echo "... LoxValue.i"
 	@echo "... LoxValue.s"
+	@echo "... VM.o"
+	@echo "... VM.i"
+	@echo "... VM.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

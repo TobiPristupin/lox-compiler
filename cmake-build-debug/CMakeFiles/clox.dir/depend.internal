@@ -11,7 +11,13 @@ CMakeFiles/clox.dir/DebugUtils.cpp.o
 CMakeFiles/clox.dir/LoxValue.cpp.o
  /home/pristu/Documents/cpp/clox/LoxValue.cpp
  /home/pristu/Documents/cpp/clox/LoxValue.h
+CMakeFiles/clox.dir/VM.cpp.o
+ /home/pristu/Documents/cpp/clox/Chunk.h
+ /home/pristu/Documents/cpp/clox/DebugUtils.h
+ /home/pristu/Documents/cpp/clox/VM.cpp
+ /home/pristu/Documents/cpp/clox/VM.h
 CMakeFiles/clox.dir/main.cpp.o
  /home/pristu/Documents/cpp/clox/Chunk.h
  /home/pristu/Documents/cpp/clox/DebugUtils.h
+ /home/pristu/Documents/cpp/clox/VM.h
  /home/pristu/Documents/cpp/clox/main.cpp

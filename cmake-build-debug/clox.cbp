@@ -144,6 +144,12 @@
 		<Unit filename="/home/pristu/Documents/cpp/clox/LoxValue.h">
 			<Option target="clox"/>
 		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/VM.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/VM.h">
+			<Option target="clox"/>
+		</Unit>
 		<Unit filename="/home/pristu/Documents/cpp/clox/main.cpp">
 			<Option target="clox"/>
 		</Unit>

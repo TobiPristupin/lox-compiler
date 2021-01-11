@@ -7,6 +7,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/pristu/Documents/cpp/clox/Chunk.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/Chunk.cpp.o"
   "/home/pristu/Documents/cpp/clox/DebugUtils.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/DebugUtils.cpp.o"
   "/home/pristu/Documents/cpp/clox/LoxValue.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/LoxValue.cpp.o"
+  "/home/pristu/Documents/cpp/clox/VM.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/VM.cpp.o"
   "/home/pristu/Documents/cpp/clox/main.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

@@ -1,1 +1,1 @@
-/usr/bin/c++  -g   CMakeFiles/test.dir/test.cpp.o  -o test 
+/usr/bin/c++  -g -D_GLIBCXX_DEBUG   CMakeFiles/test.dir/test.cpp.o  -o test 

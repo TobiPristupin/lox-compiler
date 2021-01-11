@@ -8,7 +8,7 @@
 enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 8-bit integers
     OP_RETURN,
     OP_PRINT,
-    OP_CONSTANT
+    OP_CONSTANT,
 };
 
 using Value = double;

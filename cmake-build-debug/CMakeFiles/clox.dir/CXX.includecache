@@ -18,11 +18,19 @@ string
 Chunk.h
 /home/pristu/Documents/cpp/clox/Chunk.h
 
-/home/pristu/Documents/cpp/clox/main.cpp
+/home/pristu/Documents/cpp/clox/VM.cpp
 iostream
+-
+VM.h
+/home/pristu/Documents/cpp/clox/VM.h
+DebugUtils.h
+/home/pristu/Documents/cpp/clox/DebugUtils.h
+
+/home/pristu/Documents/cpp/clox/VM.h
+memory
+-
+stack
 -
 Chunk.h
 /home/pristu/Documents/cpp/clox/Chunk.h
-DebugUtils.h
-/home/pristu/Documents/cpp/clox/DebugUtils.h
 
