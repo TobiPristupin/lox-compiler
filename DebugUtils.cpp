@@ -24,7 +24,7 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
     std::byte byteInstruction = chunk->readByte(offset);
     int lineNumber = chunk->readLine(offset);
     std::cout << lineNumber << " ";
-    OpCode opcode = static_cast<OpCode>(byteInstruction);
+    auto opcode = static_cast<OpCode>(byteInstruction);
     switch (opcode) {
         case OpCode::OP_CONSTANT:
             constantInstruction(offset, chunk);
@@ -34,6 +34,21 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
             return offset + 1;
         case OpCode::OP_PRINT:
             std::cout << "OP_PRINT\n";
+            return offset + 1;
+        case OpCode::OP_NEGATE:
+            std::cout << "OP_NEGATE\n";
+            return offset + 1;
+        case OpCode::OP_ADD:
+            std::cout << "OP_ADD\n";
+            return offset + 1;
+        case OpCode::OP_SUBTRACT:
+            std::cout << "OP_SUBTRACT\n";
+            return offset + 1;
+        case OpCode::OP_MULTIPLY:
+            std::cout << "OP_MULTIPLY\n";
+            return offset + 1;
+        case OpCode::OP_DIVIDE:
+            std::cout << "OP_DIVIDE\n";
             return offset + 1;
         default:
             std::cout << "UNKNOWN\n";

@@ -11,6 +11,9 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
     this->chunk = chunk;
 
     while (true){
+        //keep track of the current offset before we modify it in case the DEBUG flag is on and we want to debug print info about
+        //the last executed instruction.
+        int currentOffset = programCounter;
         std::byte instruction = chunk->readByte(programCounter);
         programCounter++;
 
@@ -18,16 +21,34 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
             case OpCode::OP_RETURN:
                 return ExecutionResult::OK;
             case OpCode::OP_PRINT:
-                std::cout << popStack() << "\n";
+                std::cout << stack.top() << "\n";
                 break;
             case OpCode::OP_CONSTANT:
-                Value constant = readConstant();
-                pushStack(constant);
+                pushStack(readConstant());
                 break;
+            case OpCode::OP_NEGATE:
+                pushStack(-popStack());
+                break;
+            case OpCode::OP_ADD:
+                pushStack(popStack() + popStack());
+                break;
+            case OpCode::OP_SUBTRACT:
+                pushStack(popStack() - popStack());
+                break;
+            case OpCode::OP_MULTIPLY:
+                pushStack(popStack() * popStack());
+                break;
+            case OpCode::OP_DIVIDE:
+            {
+                Value b = popStack();
+                Value a = popStack();
+                pushStack(a / b);
+            }
+            break;
         }
 
 #ifdef DEBUG
-        printDebugInfo(programCounter - 1); //programCounter - 1 because we want to print debug info for the last executed instruction
+        printDebugInfo(currentOffset);
 #endif
     }
     return ExecutionResult::OK;
@@ -52,7 +73,7 @@ Value VM::popStack() {
 void VM::printDebugInfo(int offset) {
     std::cout << "[DEBUG] \n";
     std::cout << "\tInstruction: ";
-    DebugUtils::printInstruction(offset - 1, chunk.get());
+    DebugUtils::printInstruction(offset, chunk.get());
     std::cout << "\tStack: [";
     std::stack<Value> copy(stack);
 

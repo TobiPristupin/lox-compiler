@@ -9,6 +9,11 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_RETURN,
     OP_PRINT,
     OP_CONSTANT,
+    OP_NEGATE,
+    OP_ADD,
+    OP_SUBTRACT,
+    OP_MULTIPLY,
+    OP_DIVIDE
 };
 
 using Value = double;

@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <stack>
+#include <functional>
 #include "Chunk.h"
 
 enum class ExecutionResult {
@@ -25,6 +26,8 @@ private:
     Value readConstant();
     void pushStack(Value val);
     Value popStack();
+
+
 
 
     void printDebugInfo(int offset);
