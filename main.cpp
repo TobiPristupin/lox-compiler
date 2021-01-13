@@ -1,36 +1,81 @@
-
-
-
+#include <iostream>
 #include "Chunk.h"
-#include "DebugUtils.h"
 #include "VM.h"
+#include "FileReader.h"
+#include "LoxError.h"
+#include "Scanner.h"
 
 
-int main() {
-    VM vm;
+void displayCLoxUsage();
+ExecutionResult runRepl();
+ExecutionResult runScript(const std::string& filename);
+ExecutionResult runCode(const std::string &code);
 
-    std::shared_ptr<Chunk> mainChunk = std::make_shared<Chunk>();
-    mainChunk->writeInstruction(OpCode::OP_CONSTANT, 1);
-    int offset = mainChunk->writeConstant(5);
-    mainChunk->write(std::byte(offset), 1);
+int main(int argc, char *argv[]) {
+    ExecutionResult result;
 
-    mainChunk->writeInstruction(OpCode::OP_CONSTANT, 2);
-    offset = mainChunk->writeConstant(3);
-    mainChunk->write(std::byte(offset), 2);
+    if (argc > 2) {
+        displayCLoxUsage();
+        result = ExecutionResult::OK;
+    } else if (argc == 2) {
+        result = runScript(argv[1]);
+    } else {
+        result = runRepl();
+    }
 
+    switch (result) {
+        case ExecutionResult::OK:
+            return 0;
+        case ExecutionResult::COMPILE_ERROR:
+            return 65;
+        case ExecutionResult::RUNTIME_ERROR:
+            return 70;
+    }
+}
 
-//    mainChunk->writeInstruction(OpCode::OP_PRINT, 3);
+ExecutionResult runScript(const std::string &filename){
+    std::string code;
+    try {
+        FileReader reader(filename);
+        code = reader.readAll();
+    } catch (const LoxFileNotFoundError &error) {
+        std::cout << error.what() << "\n";
+        return ExecutionResult::COMPILE_ERROR;
+    } catch (...) {
+        std::cout << "Unknown error ocurred while reading file\n";
+        return ExecutionResult::COMPILE_ERROR;
+    }
 
-    mainChunk->writeInstruction(OpCode::OP_ADD, 6);
+    return runCode(code);
+}
 
-    mainChunk->writeInstruction(OpCode::OP_PRINT, 7);
+ExecutionResult runRepl(){
+    std::cout << "Interactive Repl mode. Type \"quit()\" or press CTRL-C to exit\n";
+    std::string line;
+    while (true){
+        std::cout << "< ";
+        std::getline(std::cin, line);
+        if (line == "quit()") return ExecutionResult::OK;
+        try {
+            runCode(line);
+        } catch (const LoxError &exception){
+            std::cout << exception.what() << "\n"; //use cout instead of cerr to avoid the two streams not being synchronized when printing the next '< '
+        }
+    }
 
+    return ExecutionResult::OK;
+}
 
-    mainChunk->writeInstruction(OpCode::OP_RETURN, 8);
+ExecutionResult runCode(const std::string &code){
+    Scanner scanner(code);
+    std::vector<Token> tokens = scanner.scanTokens();
+    for (Token t : tokens){
+        std::cout << t << "\n";
+    }
 
+    return ExecutionResult::OK;
+}
 
-//    DebugUtils::printChunk(mainChunk.get(), "mainChunk");
-    vm.execute(mainChunk);
-
-
+void displayCLoxUsage(){
+    std::cout << "Usage: clox [script]\n";
 }

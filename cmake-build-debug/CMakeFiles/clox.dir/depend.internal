@@ -4,13 +4,39 @@
 CMakeFiles/clox.dir/Chunk.cpp.o
  /home/pristu/Documents/cpp/clox/Chunk.cpp
  /home/pristu/Documents/cpp/clox/Chunk.h
+CMakeFiles/clox.dir/Compiler.cpp.o
+ /home/pristu/Documents/cpp/clox/Chunk.h
+ /home/pristu/Documents/cpp/clox/Compiler.cpp
+ /home/pristu/Documents/cpp/clox/Compiler.h
+ /home/pristu/Documents/cpp/clox/Token.h
+ /home/pristu/Documents/cpp/clox/TokenType.h
 CMakeFiles/clox.dir/DebugUtils.cpp.o
  /home/pristu/Documents/cpp/clox/Chunk.h
  /home/pristu/Documents/cpp/clox/DebugUtils.cpp
  /home/pristu/Documents/cpp/clox/DebugUtils.h
+CMakeFiles/clox.dir/FileReader.cpp.o
+ /home/pristu/Documents/cpp/clox/FileReader.cpp
+ /home/pristu/Documents/cpp/clox/FileReader.h
+ /home/pristu/Documents/cpp/clox/LoxError.h
+CMakeFiles/clox.dir/LoxError.cpp.o
+ /home/pristu/Documents/cpp/clox/LoxError.cpp
+ /home/pristu/Documents/cpp/clox/LoxError.h
 CMakeFiles/clox.dir/LoxValue.cpp.o
  /home/pristu/Documents/cpp/clox/LoxValue.cpp
  /home/pristu/Documents/cpp/clox/LoxValue.h
+CMakeFiles/clox.dir/Scanner.cpp.o
+ /home/pristu/Documents/cpp/clox/LoxError.h
+ /home/pristu/Documents/cpp/clox/Scanner.cpp
+ /home/pristu/Documents/cpp/clox/Scanner.h
+ /home/pristu/Documents/cpp/clox/Token.h
+ /home/pristu/Documents/cpp/clox/TokenType.h
+CMakeFiles/clox.dir/Token.cpp.o
+ /home/pristu/Documents/cpp/clox/Token.cpp
+ /home/pristu/Documents/cpp/clox/Token.h
+ /home/pristu/Documents/cpp/clox/TokenType.h
+CMakeFiles/clox.dir/TokenType.cpp.o
+ /home/pristu/Documents/cpp/clox/TokenType.cpp
+ /home/pristu/Documents/cpp/clox/TokenType.h
 CMakeFiles/clox.dir/VM.cpp.o
  /home/pristu/Documents/cpp/clox/Chunk.h
  /home/pristu/Documents/cpp/clox/DebugUtils.h
@@ -18,6 +44,10 @@ CMakeFiles/clox.dir/VM.cpp.o
  /home/pristu/Documents/cpp/clox/VM.h
 CMakeFiles/clox.dir/main.cpp.o
  /home/pristu/Documents/cpp/clox/Chunk.h
- /home/pristu/Documents/cpp/clox/DebugUtils.h
+ /home/pristu/Documents/cpp/clox/FileReader.h
+ /home/pristu/Documents/cpp/clox/LoxError.h
+ /home/pristu/Documents/cpp/clox/Scanner.h
+ /home/pristu/Documents/cpp/clox/Token.h
+ /home/pristu/Documents/cpp/clox/TokenType.h
  /home/pristu/Documents/cpp/clox/VM.h
  /home/pristu/Documents/cpp/clox/main.cpp

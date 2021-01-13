@@ -163,6 +163,33 @@ Chunk.cpp.s:
 	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Chunk.cpp.s
 .PHONY : Chunk.cpp.s
 
+Compiler.o: Compiler.cpp.o
+
+.PHONY : Compiler.o
+
+# target to build an object file
+Compiler.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Compiler.cpp.o
+.PHONY : Compiler.cpp.o
+
+Compiler.i: Compiler.cpp.i
+
+.PHONY : Compiler.i
+
+# target to preprocess a source file
+Compiler.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Compiler.cpp.i
+.PHONY : Compiler.cpp.i
+
+Compiler.s: Compiler.cpp.s
+
+.PHONY : Compiler.s
+
+# target to generate assembly for a file
+Compiler.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Compiler.cpp.s
+.PHONY : Compiler.cpp.s
+
 DebugUtils.o: DebugUtils.cpp.o
 
 .PHONY : DebugUtils.o
@@ -190,6 +217,60 @@ DebugUtils.cpp.s:
 	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/DebugUtils.cpp.s
 .PHONY : DebugUtils.cpp.s
 
+FileReader.o: FileReader.cpp.o
+
+.PHONY : FileReader.o
+
+# target to build an object file
+FileReader.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/FileReader.cpp.o
+.PHONY : FileReader.cpp.o
+
+FileReader.i: FileReader.cpp.i
+
+.PHONY : FileReader.i
+
+# target to preprocess a source file
+FileReader.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/FileReader.cpp.i
+.PHONY : FileReader.cpp.i
+
+FileReader.s: FileReader.cpp.s
+
+.PHONY : FileReader.s
+
+# target to generate assembly for a file
+FileReader.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/FileReader.cpp.s
+.PHONY : FileReader.cpp.s
+
+LoxError.o: LoxError.cpp.o
+
+.PHONY : LoxError.o
+
+# target to build an object file
+LoxError.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/LoxError.cpp.o
+.PHONY : LoxError.cpp.o
+
+LoxError.i: LoxError.cpp.i
+
+.PHONY : LoxError.i
+
+# target to preprocess a source file
+LoxError.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/LoxError.cpp.i
+.PHONY : LoxError.cpp.i
+
+LoxError.s: LoxError.cpp.s
+
+.PHONY : LoxError.s
+
+# target to generate assembly for a file
+LoxError.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/LoxError.cpp.s
+.PHONY : LoxError.cpp.s
+
 LoxValue.o: LoxValue.cpp.o
 
 .PHONY : LoxValue.o
@@ -216,6 +297,87 @@ LoxValue.s: LoxValue.cpp.s
 LoxValue.cpp.s:
 	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/LoxValue.cpp.s
 .PHONY : LoxValue.cpp.s
+
+Scanner.o: Scanner.cpp.o
+
+.PHONY : Scanner.o
+
+# target to build an object file
+Scanner.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Scanner.cpp.o
+.PHONY : Scanner.cpp.o
+
+Scanner.i: Scanner.cpp.i
+
+.PHONY : Scanner.i
+
+# target to preprocess a source file
+Scanner.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Scanner.cpp.i
+.PHONY : Scanner.cpp.i
+
+Scanner.s: Scanner.cpp.s
+
+.PHONY : Scanner.s
+
+# target to generate assembly for a file
+Scanner.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Scanner.cpp.s
+.PHONY : Scanner.cpp.s
+
+Token.o: Token.cpp.o
+
+.PHONY : Token.o
+
+# target to build an object file
+Token.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Token.cpp.o
+.PHONY : Token.cpp.o
+
+Token.i: Token.cpp.i
+
+.PHONY : Token.i
+
+# target to preprocess a source file
+Token.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Token.cpp.i
+.PHONY : Token.cpp.i
+
+Token.s: Token.cpp.s
+
+.PHONY : Token.s
+
+# target to generate assembly for a file
+Token.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/Token.cpp.s
+.PHONY : Token.cpp.s
+
+TokenType.o: TokenType.cpp.o
+
+.PHONY : TokenType.o
+
+# target to build an object file
+TokenType.cpp.o:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/TokenType.cpp.o
+.PHONY : TokenType.cpp.o
+
+TokenType.i: TokenType.cpp.i
+
+.PHONY : TokenType.i
+
+# target to preprocess a source file
+TokenType.cpp.i:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/TokenType.cpp.i
+.PHONY : TokenType.cpp.i
+
+TokenType.s: TokenType.cpp.s
+
+.PHONY : TokenType.s
+
+# target to generate assembly for a file
+TokenType.cpp.s:
+	$(MAKE) -f CMakeFiles/clox.dir/build.make CMakeFiles/clox.dir/TokenType.cpp.s
+.PHONY : TokenType.cpp.s
 
 VM.o: VM.cpp.o
 
@@ -311,12 +473,30 @@ help:
 	@echo "... Chunk.o"
 	@echo "... Chunk.i"
 	@echo "... Chunk.s"
+	@echo "... Compiler.o"
+	@echo "... Compiler.i"
+	@echo "... Compiler.s"
 	@echo "... DebugUtils.o"
 	@echo "... DebugUtils.i"
 	@echo "... DebugUtils.s"
+	@echo "... FileReader.o"
+	@echo "... FileReader.i"
+	@echo "... FileReader.s"
+	@echo "... LoxError.o"
+	@echo "... LoxError.i"
+	@echo "... LoxError.s"
 	@echo "... LoxValue.o"
 	@echo "... LoxValue.i"
 	@echo "... LoxValue.s"
+	@echo "... Scanner.o"
+	@echo "... Scanner.i"
+	@echo "... Scanner.s"
+	@echo "... Token.o"
+	@echo "... Token.i"
+	@echo "... Token.s"
+	@echo "... TokenType.o"
+	@echo "... TokenType.i"
+	@echo "... TokenType.s"
 	@echo "... VM.o"
 	@echo "... VM.i"
 	@echo "... VM.s"

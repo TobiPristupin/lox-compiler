@@ -132,16 +132,52 @@
 		<Unit filename="/home/pristu/Documents/cpp/clox/Chunk.h">
 			<Option target="clox"/>
 		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/Compiler.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/Compiler.h">
+			<Option target="clox"/>
+		</Unit>
 		<Unit filename="/home/pristu/Documents/cpp/clox/DebugUtils.cpp">
 			<Option target="clox"/>
 		</Unit>
 		<Unit filename="/home/pristu/Documents/cpp/clox/DebugUtils.h">
 			<Option target="clox"/>
 		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/FileReader.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/FileReader.h">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/LoxError.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/LoxError.h">
+			<Option target="clox"/>
+		</Unit>
 		<Unit filename="/home/pristu/Documents/cpp/clox/LoxValue.cpp">
 			<Option target="clox"/>
 		</Unit>
 		<Unit filename="/home/pristu/Documents/cpp/clox/LoxValue.h">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/Scanner.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/Scanner.h">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/Token.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/Token.h">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/TokenType.cpp">
+			<Option target="clox"/>
+		</Unit>
+		<Unit filename="/home/pristu/Documents/cpp/clox/TokenType.h">
 			<Option target="clox"/>
 		</Unit>
 		<Unit filename="/home/pristu/Documents/cpp/clox/VM.cpp">

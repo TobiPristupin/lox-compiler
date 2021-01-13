@@ -122,13 +122,97 @@ CMakeFiles/clox.dir/VM.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/VM.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/VM.cpp -o CMakeFiles/clox.dir/VM.cpp.s
 
+CMakeFiles/clox.dir/FileReader.cpp.o: CMakeFiles/clox.dir/flags.make
+CMakeFiles/clox.dir/FileReader.cpp.o: ../FileReader.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/clox.dir/FileReader.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clox.dir/FileReader.cpp.o -c /home/pristu/Documents/cpp/clox/FileReader.cpp
+
+CMakeFiles/clox.dir/FileReader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clox.dir/FileReader.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pristu/Documents/cpp/clox/FileReader.cpp > CMakeFiles/clox.dir/FileReader.cpp.i
+
+CMakeFiles/clox.dir/FileReader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/FileReader.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/FileReader.cpp -o CMakeFiles/clox.dir/FileReader.cpp.s
+
+CMakeFiles/clox.dir/Compiler.cpp.o: CMakeFiles/clox.dir/flags.make
+CMakeFiles/clox.dir/Compiler.cpp.o: ../Compiler.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/clox.dir/Compiler.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clox.dir/Compiler.cpp.o -c /home/pristu/Documents/cpp/clox/Compiler.cpp
+
+CMakeFiles/clox.dir/Compiler.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clox.dir/Compiler.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pristu/Documents/cpp/clox/Compiler.cpp > CMakeFiles/clox.dir/Compiler.cpp.i
+
+CMakeFiles/clox.dir/Compiler.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/Compiler.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/Compiler.cpp -o CMakeFiles/clox.dir/Compiler.cpp.s
+
+CMakeFiles/clox.dir/Token.cpp.o: CMakeFiles/clox.dir/flags.make
+CMakeFiles/clox.dir/Token.cpp.o: ../Token.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/clox.dir/Token.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clox.dir/Token.cpp.o -c /home/pristu/Documents/cpp/clox/Token.cpp
+
+CMakeFiles/clox.dir/Token.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clox.dir/Token.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pristu/Documents/cpp/clox/Token.cpp > CMakeFiles/clox.dir/Token.cpp.i
+
+CMakeFiles/clox.dir/Token.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/Token.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/Token.cpp -o CMakeFiles/clox.dir/Token.cpp.s
+
+CMakeFiles/clox.dir/Scanner.cpp.o: CMakeFiles/clox.dir/flags.make
+CMakeFiles/clox.dir/Scanner.cpp.o: ../Scanner.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/clox.dir/Scanner.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clox.dir/Scanner.cpp.o -c /home/pristu/Documents/cpp/clox/Scanner.cpp
+
+CMakeFiles/clox.dir/Scanner.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clox.dir/Scanner.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pristu/Documents/cpp/clox/Scanner.cpp > CMakeFiles/clox.dir/Scanner.cpp.i
+
+CMakeFiles/clox.dir/Scanner.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/Scanner.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/Scanner.cpp -o CMakeFiles/clox.dir/Scanner.cpp.s
+
+CMakeFiles/clox.dir/TokenType.cpp.o: CMakeFiles/clox.dir/flags.make
+CMakeFiles/clox.dir/TokenType.cpp.o: ../TokenType.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/clox.dir/TokenType.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clox.dir/TokenType.cpp.o -c /home/pristu/Documents/cpp/clox/TokenType.cpp
+
+CMakeFiles/clox.dir/TokenType.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clox.dir/TokenType.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pristu/Documents/cpp/clox/TokenType.cpp > CMakeFiles/clox.dir/TokenType.cpp.i
+
+CMakeFiles/clox.dir/TokenType.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/TokenType.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/TokenType.cpp -o CMakeFiles/clox.dir/TokenType.cpp.s
+
+CMakeFiles/clox.dir/LoxError.cpp.o: CMakeFiles/clox.dir/flags.make
+CMakeFiles/clox.dir/LoxError.cpp.o: ../LoxError.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/clox.dir/LoxError.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clox.dir/LoxError.cpp.o -c /home/pristu/Documents/cpp/clox/LoxError.cpp
+
+CMakeFiles/clox.dir/LoxError.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clox.dir/LoxError.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pristu/Documents/cpp/clox/LoxError.cpp > CMakeFiles/clox.dir/LoxError.cpp.i
+
+CMakeFiles/clox.dir/LoxError.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clox.dir/LoxError.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pristu/Documents/cpp/clox/LoxError.cpp -o CMakeFiles/clox.dir/LoxError.cpp.s
+
 # Object files for target clox
 clox_OBJECTS = \
 "CMakeFiles/clox.dir/main.cpp.o" \
 "CMakeFiles/clox.dir/Chunk.cpp.o" \
 "CMakeFiles/clox.dir/DebugUtils.cpp.o" \
 "CMakeFiles/clox.dir/LoxValue.cpp.o" \
-"CMakeFiles/clox.dir/VM.cpp.o"
+"CMakeFiles/clox.dir/VM.cpp.o" \
+"CMakeFiles/clox.dir/FileReader.cpp.o" \
+"CMakeFiles/clox.dir/Compiler.cpp.o" \
+"CMakeFiles/clox.dir/Token.cpp.o" \
+"CMakeFiles/clox.dir/Scanner.cpp.o" \
+"CMakeFiles/clox.dir/TokenType.cpp.o" \
+"CMakeFiles/clox.dir/LoxError.cpp.o"
 
 # External object files for target clox
 clox_EXTERNAL_OBJECTS =
@@ -138,9 +222,15 @@ clox: CMakeFiles/clox.dir/Chunk.cpp.o
 clox: CMakeFiles/clox.dir/DebugUtils.cpp.o
 clox: CMakeFiles/clox.dir/LoxValue.cpp.o
 clox: CMakeFiles/clox.dir/VM.cpp.o
+clox: CMakeFiles/clox.dir/FileReader.cpp.o
+clox: CMakeFiles/clox.dir/Compiler.cpp.o
+clox: CMakeFiles/clox.dir/Token.cpp.o
+clox: CMakeFiles/clox.dir/Scanner.cpp.o
+clox: CMakeFiles/clox.dir/TokenType.cpp.o
+clox: CMakeFiles/clox.dir/LoxError.cpp.o
 clox: CMakeFiles/clox.dir/build.make
 clox: CMakeFiles/clox.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable clox"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX executable clox"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/clox.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

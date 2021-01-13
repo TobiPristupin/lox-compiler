@@ -5,8 +5,14 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
   "/home/pristu/Documents/cpp/clox/Chunk.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/Chunk.cpp.o"
+  "/home/pristu/Documents/cpp/clox/Compiler.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/Compiler.cpp.o"
   "/home/pristu/Documents/cpp/clox/DebugUtils.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/DebugUtils.cpp.o"
+  "/home/pristu/Documents/cpp/clox/FileReader.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/FileReader.cpp.o"
+  "/home/pristu/Documents/cpp/clox/LoxError.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/LoxError.cpp.o"
   "/home/pristu/Documents/cpp/clox/LoxValue.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/LoxValue.cpp.o"
+  "/home/pristu/Documents/cpp/clox/Scanner.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/Scanner.cpp.o"
+  "/home/pristu/Documents/cpp/clox/Token.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/Token.cpp.o"
+  "/home/pristu/Documents/cpp/clox/TokenType.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/TokenType.cpp.o"
   "/home/pristu/Documents/cpp/clox/VM.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/VM.cpp.o"
   "/home/pristu/Documents/cpp/clox/main.cpp" "/home/pristu/Documents/cpp/clox/cmake-build-debug/CMakeFiles/clox.dir/main.cpp.o"
   )
