@@ -4,6 +4,8 @@
 #include "FileReader.h"
 #include "LoxError.h"
 #include "Scanner.h"
+#include "Compiler.h"
+#include "DebugUtils.h"
 
 
 void displayCLoxUsage();
@@ -68,9 +70,26 @@ ExecutionResult runRepl(){
 
 ExecutionResult runCode(const std::string &code){
     Scanner scanner(code);
-    std::vector<Token> tokens = scanner.scanTokens();
-    for (Token t : tokens){
+    std::vector<Token> tokens;
+
+    try {
+        tokens = scanner.scanTokens();
+    } catch (const LoxScanningError& exception) {
+        std::cout << exception.what() << "\n";
+        return ExecutionResult::COMPILE_ERROR;
+    }
+
+        for (Token t : tokens){
         std::cout << t << "\n";
+    }
+
+    Compiler compiler;
+    bool successFlag;
+    std::shared_ptr<Chunk> chunk = compiler.compile(tokens, successFlag);
+    DebugUtils::printChunk(chunk.get(), "main");
+
+    if (!successFlag){
+        return ExecutionResult::COMPILE_ERROR;
     }
 
     return ExecutionResult::OK;

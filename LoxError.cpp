@@ -39,5 +39,13 @@ const char *LoxRuntimeError::what() const noexcept {
 
 LoxFileNotFoundError::LoxFileNotFoundError(const std::string &message) : LoxError(message) {}
 
+LoxCompileError::LoxCompileError(const std::string &message, int line) : LoxError(message, line) {
+    this->message = "[Line " + std::to_string(line) + "] " +  "Compile Error: " + message;
+}
+
+const char *LoxCompileError::what() const noexcept {
+    return message.c_str();
+}
+
 
 

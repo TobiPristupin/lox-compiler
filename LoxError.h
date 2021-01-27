@@ -32,5 +32,11 @@ public:
     LoxFileNotFoundError(const std::string &message);
 };
 
+class LoxCompileError : public LoxError {
+public:
+    LoxCompileError(const std::string &message, int line);
+    const char* what() const noexcept override;
+};
+
 
 #endif //JLOX_LOXERROR_H
