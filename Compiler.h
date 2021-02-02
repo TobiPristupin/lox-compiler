@@ -58,10 +58,13 @@ private:
 
 
 
-    void registerParselets();
+    void registerParsingRules();
 
+    void emitByte(OpCode opCode);
+    void emitByte(OpCode opCode1, std::byte byte);
     void emitByte(std::byte byte);
     void emitByte(std::byte first, std::byte second);
+    void emitConstant(const Value &constant);
 
     std::shared_ptr<Chunk> currentChunk();
 

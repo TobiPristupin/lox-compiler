@@ -3,7 +3,7 @@
 #include "DebugUtils.h"
 
 //when this macro is enabled, the VM will print every instruction before executing it
-#define DEBUG
+#define DEBUG_VM
 
 
 ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
@@ -51,7 +51,7 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
             break;
         }
 
-#ifdef DEBUG
+#ifdef DEBUG_VM
         printDebugInfo(currentOffset);
 #endif
     }
@@ -75,7 +75,7 @@ Value VM::popStack() {
 }
 
 void VM::printDebugInfo(int offset) {
-    std::cout << "[DEBUG] \n";
+    std::cout << "[DEBUG]";
     std::cout << "\tInstruction: ";
     DebugUtils::printInstruction(offset, chunk.get());
     std::cout << "\tStack: [";

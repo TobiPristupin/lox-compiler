@@ -1,7 +1,6 @@
 #include <iostream>
 #include <bitset>
 #include "DebugUtils.h"
-#include <cstdint>
 
 void DebugUtils::printChunk(const Chunk *chunk, const std::string &name) {
     std::cout << "Chunk: " << name << "\n";

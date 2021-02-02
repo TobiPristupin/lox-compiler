@@ -1,33 +1,80 @@
 #include <iostream>
+#include <bitset>
+#include <cstddef>
+#include <cassert>
 #include "Compiler.h"
 #include "LoxError.h"
+#include "DebugUtils.h"
+
+//if this directive is enabled the compiler prints out every opcode after emitting them to the current chunk
+#define DEBUG_COMPILER
 
 ParseRule::ParseRule(ParseFunction parseAsPrefix, ParseFunction parseAsInfix, PrecedenceLevel precedenceLevel)
     : parseAsPrefix(parseAsPrefix), parseAsInfix(parseAsInfix), precedenceLevel(precedenceLevel) {}
 
 Compiler::Compiler() {
-    registerParselets();
+    registerParsingRules();
 }
 
-void Compiler::registerParselets() {
-    parsingRules.emplace(TokenType::END_OF_FILE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE));
-    parsingRules.emplace(TokenType::LEFT_PAREN, ParseRule([this] {grouping();}, std::nullopt, PrecedenceLevel::NONE));
-    parsingRules.emplace(TokenType::RIGHT_PAREN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE));
-    parsingRules.emplace(TokenType::MINUS, ParseRule([this] {unary();}, [this] {binary();}, PrecedenceLevel::TERM));
-    parsingRules.emplace(TokenType::PLUS, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::TERM));
-    parsingRules.emplace(TokenType::SLASH, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR));
-    parsingRules.emplace(TokenType::STAR, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR));
-    parsingRules.emplace(TokenType::NUMBER, ParseRule([this] {number();}, std::nullopt, PrecedenceLevel::FACTOR));
+void Compiler::registerParsingRules() {
+    parsingRules = {
+            {TokenType::LEFT_PAREN, ParseRule([this] {grouping();}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::RIGHT_PAREN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LEFT_BRACE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::RIGHT_BRACE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LEFT_BRACKET, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::RIGHT_BRACKET, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::COMMA, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::DOT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::MINUS, ParseRule([this] {unary();}, [this] {binary();}, PrecedenceLevel::TERM)},
+            {TokenType::PLUS, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::TERM)},
+            {TokenType::SEMICOLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::SLASH, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
+            {TokenType::STAR, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
+            {TokenType::COLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::BANG, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::BANG_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::EQUAL_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::GREATER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::GREATER_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LESS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LESS_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::PLUS_PLUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::MINUS_MINUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::IDENTIFIER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::STRING, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::NUMBER, ParseRule([this] {number();}, std::nullopt, PrecedenceLevel::FACTOR)},
+            {TokenType::AND, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::CLASS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::ELSE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::ELIF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::FALSE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::FUN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::FOR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::IF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::NIL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::OR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::PRINT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::RETURN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::SUPER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::THIS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::TRUE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::VAR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::WHILE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::BREAK, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::CONTINUE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LAMBDA, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::END_OF_FILE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+    };
 }
-
-
 
 
 std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool &successFlag) {
     successFlag = true;
     this->tokens = tokens;
     chunk = std::make_shared<Chunk>();
-    while (!isAtEnd()){
+    while (peek().type != TokenType::END_OF_FILE){
         try {
             expression();
         } catch (const LoxCompileError &error) {
@@ -38,10 +85,12 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
         }
     }
 
-    if (hadError){
-        successFlag = false;
+    if (!hadError){
+        assert(match(TokenType::END_OF_FILE)); //Scanner should have included a END_OF_FILE token
     }
 
+    emitByte(OpCode::OP_RETURN);
+    successFlag = !hadError;
     return chunk;
 }
 
@@ -49,30 +98,27 @@ void Compiler::expression() {
     parsePrecedence(PrecedenceLevel::ASSIGNMENT);
 }
 
+//Parses all tokens that have a precedence >= to the precedence passed
 void Compiler::parsePrecedence(PrecedenceLevel precedence) {
     advance();
 
-    if (previous().type == TokenType::END_OF_FILE){
-        currentChunk()->writeInstruction(OpCode::OP_RETURN, previous().line);
-        return;
-    }
-
-
+    //Get the function to parse the previous token as a prefix expression
     auto prefixRule = parsingRules.find(previous().type);
-    if (prefixRule == parsingRules.end()){
-        throw LoxCompileError("Expected expression", previous().line);
-    }
-
     ParseFunction parseAsPrefix = prefixRule->second.parseAsPrefix;
+
+    /*Every expression by definition must start with a prefix token. If the current token does not have a function
+    to parse it as a prefix token, then that means we started our expression with a non-prefix token, which is invalid*/
     if (!parseAsPrefix.has_value()){
         throw LoxCompileError("Expected expression", previous().line);
     }
 
-    //call the function
+    //call the function to parse the token as prefix
     parseAsPrefix.value()();
 
-    while (peek().type != TokenType::END_OF_FILE && precedence <= parsingRules.at(peek().type).precedenceLevel){
+    //keep parsing tokens while the precedence level of the following token is greater than the precedence passes as a param
+    while (precedence <= parsingRules.at(peek().type).precedenceLevel){
         advance();
+        //get rule to parse as infix and parse
         ParseFunction parseAsInfix = parsingRules.at(previous().type).parseAsInfix;
         parseAsInfix.value()();
     }
@@ -80,16 +126,7 @@ void Compiler::parsePrecedence(PrecedenceLevel precedence) {
 
 void Compiler::number() {
     double value = stod(previous().lexeme);
-    size_t constantOffset = currentChunk()->writeConstant(value);
-
-    ////A chunk can only hold 256 constants because 8 bits are used to represent the index of the constant in the constant pool
-    //TODO: Add a special OP_CONSTANT_16 special instruction that uses 16 bits?
-    if (constantOffset >= 256) {
-        throw LoxCompileError("Cannot have more than 256 constants", previous().line);
-    }
-
-    currentChunk()->writeInstruction(OpCode::OP_CONSTANT, previous().line);
-    currentChunk()->write(static_cast<std::byte>(constantOffset), previous().line);
+    emitConstant(value);
 }
 
 void Compiler::unary() {
@@ -116,17 +153,13 @@ void Compiler::binary() {
 
     switch (type) {
         case TokenType::PLUS:
-            currentChunk()->writeInstruction(OpCode::OP_ADD, previous().line);
-            break;
+            emitByte(OpCode::OP_ADD); break;
         case TokenType::MINUS:
-            currentChunk()->writeInstruction(OpCode::OP_SUBTRACT, previous().line);
-            break;
+            emitByte(OpCode::OP_SUBTRACT); break;
         case TokenType::STAR:
-            currentChunk()->writeInstruction(OpCode::OP_MULTIPLY, previous().line);
-            break;
+            emitByte(OpCode::OP_MULTIPLY); break;
         case TokenType::SLASH:
-            currentChunk()->writeInstruction(OpCode::OP_DIVIDE, previous().line);
-            break;
+            emitByte(OpCode::OP_DIVIDE); break;
         default:
             throw std::runtime_error("Unreachable");
     }
@@ -138,12 +171,37 @@ void Compiler::grouping() {
 }
 
 void Compiler::emitByte(std::byte byte) {
-    currentChunk()->write(byte, peek().line);
+    currentChunk()->write(byte, previous().line);
+#ifdef DEBUG_COMPILER
+    std::cout << "[DEBUG] Compiler Emitted: " << std::to_integer<int>(byte) << "\n";
+#endif
 }
 
 void Compiler::emitByte(std::byte first, std::byte second) {
     emitByte(first);
     emitByte(second);
+}
+
+void Compiler::emitByte(OpCode opCode) {
+    emitByte(static_cast<std::byte>(opCode));
+}
+
+void Compiler::emitByte(OpCode opCode1, std::byte byte) {
+    emitByte(opCode1);
+    emitByte(byte);
+}
+
+void Compiler::emitConstant(const Value &constant) {
+    size_t constantOffset = currentChunk()->writeConstant(constant);
+
+    ////A chunk can only hold 256 constants because 8 bits are used to represent the index of the constant in the constant pool
+    //TODO: Add a special OP_CONSTANT_16 special instruction that uses 16 bits?
+    if (constantOffset >= 256) {
+        throw LoxCompileError("Cannot have more than 256 constants", previous().line);
+    }
+
+    emitByte(OpCode::OP_CONSTANT);
+    emitByte(static_cast<std::byte>(constantOffset));
 }
 
 std::shared_ptr<Chunk> Compiler::currentChunk() {
