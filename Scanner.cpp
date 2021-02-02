@@ -169,7 +169,7 @@ std::optional<Token> Scanner::scanIdentifier() {
 
         return createToken(reservedKeywords[identifier]);
     }
-    return createToken(IDENTIFIER);
+    return createToken(TokenType::IDENTIFIER);
 }
 
 std::optional<Token> Scanner::scanNumber() {
@@ -188,10 +188,10 @@ std::optional<Token> Scanner::scanNumber() {
     int decimal = std::count(number.begin(), number.end(), '.');
 
     if (decimal == 1){
-        return createToken(NUMBER);
+        return createToken(TokenType::NUMBER);
     }
 
-    return createToken(NUMBER);
+    return createToken(TokenType::NUMBER);
 }
 
 std::optional<Token> Scanner::scanString() {

@@ -13,7 +13,7 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
     while (true){
         //keep track of the current offset before we modify it in case the DEBUG flag is on and we want to debug print info about
         //the last executed instruction.
-        int currentOffset = programCounter;
+        [[maybe_unused]] int currentOffset = programCounter;
         std::byte instruction = chunk->readByte(programCounter);
         programCounter++;
 
@@ -33,7 +33,11 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 pushStack(popStack() + popStack());
                 break;
             case OpCode::OP_SUBTRACT:
-                pushStack(popStack() - popStack());
+            {
+                Value b = popStack();
+                Value a = popStack();
+                pushStack(a - b);
+            }
                 break;
             case OpCode::OP_MULTIPLY:
                 pushStack(popStack() * popStack());

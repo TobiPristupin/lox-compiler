@@ -79,9 +79,9 @@ ExecutionResult runCode(const std::string &code){
         return ExecutionResult::COMPILE_ERROR;
     }
 
-        for (Token t : tokens){
-        std::cout << t << "\n";
-    }
+//    for (Token t : tokens){
+//        std::cout << t << "\n";
+//    }
 
     Compiler compiler;
     bool successFlag;
@@ -92,7 +92,17 @@ ExecutionResult runCode(const std::string &code){
         return ExecutionResult::COMPILE_ERROR;
     }
 
-    return ExecutionResult::OK;
+    VM vm;
+    ExecutionResult result;
+    try {
+        result = vm.execute(chunk);
+    } catch (const LoxRuntimeError &error) {
+        std::cout << error.what() << "\n";
+        return ExecutionResult::RUNTIME_ERROR;
+    }
+
+
+    return result;
 }
 
 void displayCLoxUsage(){
