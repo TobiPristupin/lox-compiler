@@ -49,6 +49,18 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_DIVIDE:
             std::cout << "OP_DIVIDE\n";
             return offset + 1;
+        case OpCode::OP_TRUE:
+            std::cout << "OP_TRUE\n";
+            return offset + 1;
+        case OpCode::OP_FALSE:
+            std::cout << "OP_FALSE\n";
+            return offset + 1;
+        case OpCode::OP_NIL:
+            std::cout << "OP_NIL\n";
+            return offset + 1;
+        case OpCode::OP_NOT:
+            std::cout << "OP_NOT\n";
+            return offset + 1;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;

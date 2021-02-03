@@ -64,7 +64,7 @@ private:
     void emitByte(OpCode opCode1, std::byte byte);
     void emitByte(std::byte byte);
     void emitByte(std::byte first, std::byte second);
-    void emitConstant(const Value &constant);
+    void emitConstant(const CLoxLiteral &constant);
 
     std::shared_ptr<Chunk> currentChunk();
 
@@ -74,6 +74,7 @@ private:
     void grouping();
     void unary();
     void binary();
+    void literal();
 
 
     Token peek(); //peeks at current token, does not consume it

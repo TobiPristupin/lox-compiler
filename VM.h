@@ -19,13 +19,14 @@ public:
 
 
 private:
-    std::stack<Value> stack;
+    std::stack<CLoxLiteral> stack;
     std::shared_ptr<Chunk> chunk;
     int programCounter = 0; //holds the index of the next instruction to be exeuted
 
-    Value readConstant();
-    void pushStack(Value val);
-    Value popStack();
+    CLoxLiteral readConstant();
+    void pushStack(CLoxLiteral val);
+    CLoxLiteral popStack();
+
 
 
 

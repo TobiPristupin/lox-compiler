@@ -32,7 +32,7 @@ void Compiler::registerParsingRules() {
             {TokenType::SLASH, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
             {TokenType::STAR, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
             {TokenType::COLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::BANG, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::BANG, ParseRule([this] {unary();}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::BANG_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::EQUAL_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -49,17 +49,17 @@ void Compiler::registerParsingRules() {
             {TokenType::CLASS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::ELSE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::ELIF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::FALSE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::FALSE, ParseRule([this] {literal();}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::FUN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::FOR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::IF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::NIL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::NIL, ParseRule([this] {literal();}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::OR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::PRINT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RETURN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::SUPER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::THIS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::TRUE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::TRUE, ParseRule([this] {literal();}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::VAR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::WHILE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::BREAK, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -125,7 +125,7 @@ void Compiler::parsePrecedence(PrecedenceLevel precedence) {
 }
 
 void Compiler::number() {
-    double value = stod(previous().lexeme);
+    CLoxLiteral value(previous());
     emitConstant(value);
 }
 
@@ -138,6 +138,8 @@ void Compiler::unary() {
     switch (type) {
         case TokenType::MINUS:
             emitByte(static_cast<std::byte>(OpCode::OP_NEGATE));
+        case TokenType::BANG:
+            emitByte(static_cast<std::byte>(OpCode::OP_NOT));
         default:
             return; //unreachable
     }
@@ -170,6 +172,19 @@ void Compiler::grouping() {
     expect(TokenType::RIGHT_PAREN, "Expected ')' after expression");
 }
 
+void Compiler::literal() {
+    switch (previous().type) {
+        case TokenType::TRUE:
+            emitByte(OpCode::OP_TRUE); break;
+        case TokenType::FALSE:
+            emitByte(OpCode::OP_FALSE); break;
+        case TokenType::NIL:
+            emitByte(OpCode::OP_NIL); break;
+        default:
+            throw std::runtime_error("unreachable");
+    }
+}
+
 void Compiler::emitByte(std::byte byte) {
     currentChunk()->write(byte, previous().line);
 #ifdef DEBUG_COMPILER
@@ -191,7 +206,7 @@ void Compiler::emitByte(OpCode opCode1, std::byte byte) {
     emitByte(byte);
 }
 
-void Compiler::emitConstant(const Value &constant) {
+void Compiler::emitConstant(const CLoxLiteral &constant) {
     size_t constantOffset = currentChunk()->writeConstant(constant);
 
     ////A chunk can only hold 256 constants because 8 bits are used to represent the index of the constant in the constant pool

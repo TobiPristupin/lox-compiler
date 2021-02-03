@@ -19,12 +19,12 @@ size_t Chunk::byteCount() const {
     return bytecode.size();
 }
 
-size_t Chunk::writeConstant(const Value &value) {
+size_t Chunk::writeConstant(const CLoxLiteral &value) {
     constants.push_back(value);
     return constants.size() - 1;
 }
 
-Value Chunk::readConstant(int offset) const {
+CLoxLiteral Chunk::readConstant(int offset) const {
     return constants.at(offset);
 }
 
@@ -59,9 +59,6 @@ void Chunk::writeLine(int line) {
  * called when the user's code crashes to give line number information to the user.
  */
 int Chunk::readLine(int instructionOffset) const {
-    //[1, 3, 2, 2, 3, 1], offset=5
-
-
     int currentOffset = lines[1];
     int index = 0;
     while (instructionOffset + 1 > currentOffset){

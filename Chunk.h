@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include "CLoxLiteral.h"
 
 enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 8-bit integers
     OP_RETURN,
@@ -13,10 +14,12 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_ADD,
     OP_SUBTRACT,
     OP_MULTIPLY,
-    OP_DIVIDE
+    OP_DIVIDE,
+    OP_TRUE,
+    OP_FALSE,
+    OP_NIL,
+    OP_NOT
 };
-
-using Value = double;
 
 class Chunk {
 public:
@@ -28,9 +31,9 @@ public:
     size_t byteCount() const;
 
     //writes a constant to the chunk and returns the offset it was added at
-    size_t writeConstant(const Value &value);
+    size_t writeConstant(const CLoxLiteral &value);
 
-    Value readConstant(int offset) const;
+    CLoxLiteral readConstant(int offset) const;
     size_t constantCount() const;
 
     //writes a line to the chunk
@@ -41,7 +44,7 @@ public:
 
 private:
     std::vector<std::byte> bytecode;
-    std::vector<Value> constants;
+    std::vector<CLoxLiteral> constants;
     std::vector<int> lines;
 };
 
