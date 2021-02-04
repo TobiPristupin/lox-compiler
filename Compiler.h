@@ -61,6 +61,7 @@ private:
     void registerParsingRules();
 
     void emitByte(OpCode opCode);
+    void emitByte(OpCode opCode1, OpCode opcode2);
     void emitByte(OpCode opCode1, std::byte byte);
     void emitByte(std::byte byte);
     void emitByte(std::byte first, std::byte second);

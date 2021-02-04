@@ -33,13 +33,13 @@ void Compiler::registerParsingRules() {
             {TokenType::STAR, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
             {TokenType::COLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::BANG, ParseRule([this] {unary();}, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::BANG_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::BANG_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::EQUALITY)},
             {TokenType::EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::EQUAL_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::GREATER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::GREATER_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::LESS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::LESS_EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::EQUAL_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::EQUALITY)},
+            {TokenType::GREATER, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
+            {TokenType::GREATER_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
+            {TokenType::LESS, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
+            {TokenType::LESS_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
             {TokenType::PLUS_PLUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::MINUS_MINUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::IDENTIFIER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -162,6 +162,18 @@ void Compiler::binary() {
             emitByte(OpCode::OP_MULTIPLY); break;
         case TokenType::SLASH:
             emitByte(OpCode::OP_DIVIDE); break;
+        case TokenType::EQUAL_EQUAL:
+            emitByte(OpCode::OP_EQUAL); break;
+        case TokenType::BANG_EQUAL:
+            emitByte(OpCode::OP_EQUAL, OpCode::OP_NOT); break;
+        case TokenType::GREATER:
+            emitByte(OpCode::OP_GREATER); break;
+        case TokenType::LESS:
+            emitByte(OpCode::OP_LESS); break;
+        case TokenType::GREATER_EQUAL:
+            emitByte(OpCode::OP_LESS, OpCode::OP_NOT); break;
+        case TokenType::LESS_EQUAL:
+            emitByte(OpCode::OP_GREATER, OpCode::OP_NOT); break;
         default:
             throw std::runtime_error("Unreachable");
     }
@@ -204,6 +216,11 @@ void Compiler::emitByte(OpCode opCode) {
 void Compiler::emitByte(OpCode opCode1, std::byte byte) {
     emitByte(opCode1);
     emitByte(byte);
+}
+
+void Compiler::emitByte(OpCode opCode1, OpCode opcode2) {
+    emitByte(opCode1);
+    emitByte(opcode2);
 }
 
 void Compiler::emitConstant(const CLoxLiteral &constant) {

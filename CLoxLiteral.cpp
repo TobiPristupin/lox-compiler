@@ -137,52 +137,52 @@ CLoxLiteral operator/(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
     }
 }
 
-bool operator==(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.type != rhs.type) return false;
+CLoxLiteral operator==(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
+    if (lhs.type != rhs.type) return CLoxLiteral(false);
 
     if (lhs.isNumber() && rhs.isNumber()){
-        return lhs.getNumber() == rhs.getNumber();
+        return CLoxLiteral(lhs.getNumber() == rhs.getNumber());
     } else if (lhs.isString() && rhs.isString()){
-        return lhs.getString() == rhs.getString();
+        return CLoxLiteral(lhs.getString() == rhs.getString());
     } else if (lhs.isBoolean() && rhs.isBoolean()){
-        return lhs.getBoolean() == rhs.getBoolean();
+        return CLoxLiteral(lhs.getBoolean() == rhs.getBoolean());
     } else if (lhs.isNil() && rhs.isNil()){
-        return true;
+        return CLoxLiteral(true);
     }
 
     throw std::runtime_error("This should be unreachable. Missing case");
 }
 
-bool operator!=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
+CLoxLiteral operator!=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
     return !(lhs == rhs);
 }
 
-bool operator>(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
+CLoxLiteral operator>(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
     if (lhs.isNumber() && rhs.isNumber()){
-        return lhs.getNumber() > rhs.getNumber();
+        return CLoxLiteral(lhs.getNumber() > rhs.getNumber());
     } else if (lhs.isString() && rhs.isString()){
-        return lhs.getString() > rhs.getString();
+        return CLoxLiteral(lhs.getString() > rhs.getString());
     } else {
         throw std::runtime_error("Cannot apply operator '>' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
     }
 }
 
-bool operator>=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    return lhs > rhs || lhs == rhs;
+CLoxLiteral operator>=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
+    return !(lhs < rhs);
 }
 
-bool operator<(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
+CLoxLiteral operator<(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
     if (lhs.isNumber() && rhs.isNumber()){
-        return lhs.getNumber() < rhs.getNumber();
+        return CLoxLiteral(lhs.getNumber() < rhs.getNumber());
     } else if (lhs.isString() && rhs.isString()){
-        return lhs.getString() < rhs.getString();
+        return CLoxLiteral(lhs.getString() < rhs.getString());
     } else {
         throw std::runtime_error("Cannot apply operator '<' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
     }
 }
 
-bool operator<=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    return lhs < rhs || lhs == rhs;
+CLoxLiteral operator<=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
+    return !(lhs > rhs);
 }
 
 CLoxLiteral CLoxLiteral::operator-() const {

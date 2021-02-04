@@ -40,12 +40,12 @@ public:
     friend CLoxLiteral operator-(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
     friend CLoxLiteral operator*(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
     friend CLoxLiteral operator/(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend bool operator==(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend bool operator!=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend bool operator>(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend bool operator>=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend bool operator<(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend bool operator<=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
+    friend CLoxLiteral operator==(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
+    friend CLoxLiteral operator!=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
+    friend CLoxLiteral operator>(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
+    friend CLoxLiteral operator>=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
+    friend CLoxLiteral operator<(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
+    friend CLoxLiteral operator<=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
     CLoxLiteral operator++();
     CLoxLiteral operator--();
     CLoxLiteral operator-() const;

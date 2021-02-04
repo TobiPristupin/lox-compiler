@@ -61,6 +61,15 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_NOT:
             std::cout << "OP_NOT\n";
             return offset + 1;
+        case OpCode::OP_EQUAL:
+            std::cout << "OP_EQUAL\n";
+            return offset + 1;
+        case OpCode::OP_GREATER:
+            std::cout << "OP_GREATER\n";
+            return offset + 1;
+        case OpCode::OP_LESS:
+            std::cout << "OP_LESS\n";
+            return offset + 1;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;

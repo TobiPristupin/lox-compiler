@@ -63,6 +63,23 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 case OpCode::OP_NOT:
                     pushStack(CLoxLiteral(!popStack().truthy()));
                     break;
+                case OpCode::OP_EQUAL:
+                    pushStack(popStack() == popStack());
+                    break;
+                case OpCode::OP_GREATER:
+                {
+                    CLoxLiteral b = popStack();
+                    CLoxLiteral a = popStack();
+                    pushStack(CLoxLiteral(a > b));
+                }
+                    break;
+                case OpCode::OP_LESS:
+                {
+                    CLoxLiteral b = popStack();
+                    CLoxLiteral a = popStack();
+                    pushStack(CLoxLiteral(a < b));
+                }
+                    break;
             }
         } catch (const std::runtime_error &error) {
             //Overloaded operators in CLoxLiteral might throw exceptions, but CLoxLiteral has no knowledge of the current line,
