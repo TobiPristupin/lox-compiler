@@ -1,45 +1,26 @@
 #include <stdexcept>
 #include <cmath>
+#include <utility>
 #include "CLoxLiteral.h"
 #include "Utils.h"
+
+Obj::Obj(ObjType type) : type(type) {}
+
+bool Obj::isString() const {
+    return type == ObjType::STRING;
+}
+
+StringObj::StringObj(std::string str) : Obj(ObjType::STRING), str(std::move(str)) {}
 
 
 CLoxLiteral::CLoxLiteral(double number) : type(LiteralType::NUMBER), number(number) {}
 
-CLoxLiteral::CLoxLiteral(const std::string &string) : type(LiteralType::STRING), str(string) {}
-
-CLoxLiteral::CLoxLiteral(const char *string) : CLoxLiteral(std::string(string)) {}
+CLoxLiteral::CLoxLiteral(Obj *obj) : type(LiteralType::OBJ), obj(obj) {}
 
 CLoxLiteral::CLoxLiteral(bool boolean) : type(LiteralType::BOOL), boolean(boolean) {}
 
 CLoxLiteral CLoxLiteral::Nil() {
     return CLoxLiteral();
-}
-
-CLoxLiteral::CLoxLiteral(const Token &token) {
-    switch (token.type) {
-        case TokenType::NUMBER:
-            type = LiteralType::NUMBER;
-            number = std::stod(token.lexeme);
-            break;
-        case TokenType::TRUE:
-            type = LiteralType::BOOL;
-            boolean = true;
-            break;
-        case TokenType::FALSE:
-            type = LiteralType::BOOL;
-            boolean = false;
-            break;
-        case TokenType::STRING:
-            type = LiteralType::STRING;
-            str = token.lexeme;
-            break;
-        case TokenType::NIL:
-            type = LiteralType::NIL;
-            break;
-        default:
-            throw std::runtime_error("Invalid token type when constructing CLoxLiteral");
-    }
 }
 
 CLoxLiteral::CLoxLiteral() : type(LiteralType::NIL) {}
@@ -53,8 +34,8 @@ bool CLoxLiteral::isBoolean() const {
     return type == LiteralType::BOOL;
 }
 
-bool CLoxLiteral::isString() const {
-    return type == LiteralType::STRING;
+bool CLoxLiteral::isObj() const {
+    return type == LiteralType::OBJ;
 }
 
 bool CLoxLiteral::isNil() const {
@@ -75,146 +56,12 @@ bool CLoxLiteral::getBoolean() const {
     return boolean;
 }
 
-std::string CLoxLiteral::getString() const {
-    if (!isString()){
-        throw std::runtime_error("CLoxLiteral does not contain a string");
-    }
-    return str;
-}
-
-bool CLoxLiteral::truthy() const {//In clox every literal is considered true except for nil and false
-    if (isBoolean()){
-        return getBoolean();
-    } else if (isNil()){
-        return false;
+Obj *CLoxLiteral::getObj() const {
+    if (!isObj()){
+        throw std::runtime_error("CLoxLiteral does not contain a obj");
     }
 
-    return true;
-}
-
-CLoxLiteral operator+(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.isNumber() && rhs.isNumber()){
-        return CLoxLiteral(lhs.getNumber() + rhs.getNumber());
-    } else if (lhs.isString() && rhs.isString()){
-        return CLoxLiteral(lhs.getString() + rhs.getString());
-    }
-
-//    else if (lhs.isString() && rhs.isNumber()){
-//        return CLoxLiteral(lhs.getString() + std::to_string(rhs.getNumber()));
-//    } else if (lhs.isNumber() && rhs.isString()){
-//        return CLoxLiteral(std::to_string(lhs.getNumber()) + rhs.getString());
-//    }
-
-    else {
-        throw std::runtime_error("Cannot apply operator '+' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
-    }
-}
-
-CLoxLiteral operator-(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.isNumber() && rhs.isNumber()){
-        return CLoxLiteral(lhs.getNumber() - rhs.getNumber());
-    } else {
-        throw std::runtime_error("Cannot apply operator '-' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
-    }
-}
-
-CLoxLiteral operator*(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.isNumber() && rhs.isNumber()){
-        return CLoxLiteral(lhs.getNumber() * rhs.getNumber());
-    } else {
-        throw std::runtime_error("Cannot apply operator '*' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
-    }
-}
-
-CLoxLiteral operator/(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.isNumber() && rhs.isNumber()){
-        if (rhs.getNumber() == 0.0){
-            throw std::runtime_error("Cannot divide by zero");
-        }
-        return CLoxLiteral(lhs.getNumber() / rhs.getNumber());
-    } else {
-        throw std::runtime_error("Cannot apply operator '/' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
-    }
-}
-
-CLoxLiteral operator==(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.type != rhs.type) return CLoxLiteral(false);
-
-    if (lhs.isNumber() && rhs.isNumber()){
-        return CLoxLiteral(lhs.getNumber() == rhs.getNumber());
-    } else if (lhs.isString() && rhs.isString()){
-        return CLoxLiteral(lhs.getString() == rhs.getString());
-    } else if (lhs.isBoolean() && rhs.isBoolean()){
-        return CLoxLiteral(lhs.getBoolean() == rhs.getBoolean());
-    } else if (lhs.isNil() && rhs.isNil()){
-        return CLoxLiteral(true);
-    }
-
-    throw std::runtime_error("This should be unreachable. Missing case");
-}
-
-CLoxLiteral operator!=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    return !(lhs == rhs);
-}
-
-CLoxLiteral operator>(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.isNumber() && rhs.isNumber()){
-        return CLoxLiteral(lhs.getNumber() > rhs.getNumber());
-    } else if (lhs.isString() && rhs.isString()){
-        return CLoxLiteral(lhs.getString() > rhs.getString());
-    } else {
-        throw std::runtime_error("Cannot apply operator '>' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
-    }
-}
-
-CLoxLiteral operator>=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    return !(lhs < rhs);
-}
-
-CLoxLiteral operator<(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    if (lhs.isNumber() && rhs.isNumber()){
-        return CLoxLiteral(lhs.getNumber() < rhs.getNumber());
-    } else if (lhs.isString() && rhs.isString()){
-        return CLoxLiteral(lhs.getString() < rhs.getString());
-    } else {
-        throw std::runtime_error("Cannot apply operator '<' to operands of type " + literalTypeToString(lhs.type) + " and " + literalTypeToString(rhs.type));
-    }
-}
-
-CLoxLiteral operator<=(const CLoxLiteral &lhs, const CLoxLiteral &rhs) {
-    return !(lhs > rhs);
-}
-
-CLoxLiteral CLoxLiteral::operator-() const {
-    if (this->isNumber()){
-        return CLoxLiteral(-getNumber());
-    }
-
-    throw std::runtime_error("Cannot apply unary operator '-' to operand of type " + literalTypeToString(this->type));
-}
-
-CLoxLiteral CLoxLiteral::operator!() const {
-    if (this->isBoolean()){
-        return CLoxLiteral(!truthy());
-    }
-
-    throw std::runtime_error("Cannot apply unary operator '!' to operand of type " + literalTypeToString(this->type));
-}
-
-CLoxLiteral CLoxLiteral::operator++() {
-    if (isNumber()){
-        return CLoxLiteral(++number);
-    }
-
-    throw std::runtime_error("Cannot apply prefix operator '++' to operand of type " + literalTypeToString(this->type));
-}
-
-CLoxLiteral CLoxLiteral::operator--() {
-    if (isNumber()){
-        return CLoxLiteral(--number);
-    }
-
-    throw std::runtime_error("Cannot apply prefix operator '--' to operand of type " + literalTypeToString(this->type));
+    return obj;
 }
 
 std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
@@ -232,13 +79,16 @@ std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
                 os << std::to_string(object.getNumber());
             }
             return os;
-        case LiteralType::STRING:
+        case LiteralType::OBJ:
         {
-            std::string s = object.getString();
-            utils::replaceAll(s, "\\n", "\n");
-            utils::replaceAll(s, "\\t", "\t");
-            os << s;
-            return os;
+            switch (object.getObj()->type) {
+                case ObjType::STRING:
+                    std::string s = dynamic_cast<StringObj*>(object.getObj())->str;
+                    utils::replaceAll(s, "\\n", "\n");
+                    utils::replaceAll(s, "\\t", "\t");
+                    os << s;
+                    return os;
+            }
         }
         default:
             throw std::runtime_error("Object has no string representation");
@@ -254,8 +104,8 @@ std::string literalTypeToString(LiteralType type) {
             return "bool";
         case LiteralType::NUMBER:
             return "number";
-        case LiteralType::STRING:
-            return "string";
+        case LiteralType::OBJ:
+            return "obj";
     }
 
     throw std::runtime_error("This should be unreachable. Missing case.");

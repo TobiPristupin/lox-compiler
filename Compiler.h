@@ -5,6 +5,8 @@
 #include <memory>
 #include <functional>
 #include <map>
+#include <list>
+#include "CLoxLiteral.h"
 #include "Chunk.h"
 #include "Token.h"
 
@@ -67,6 +69,8 @@ private:
     void emitByte(std::byte first, std::byte second);
     void emitConstant(const CLoxLiteral &constant);
 
+    Obj* allocateHeapObj(std::string str);
+
     std::shared_ptr<Chunk> currentChunk();
 
     void parsePrecedence(PrecedenceLevel precedence);
@@ -76,6 +80,7 @@ private:
     void unary();
     void binary();
     void literal();
+    void string();
 
 
     Token peek(); //peeks at current token, does not consume it

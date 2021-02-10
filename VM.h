@@ -24,10 +24,21 @@ private:
     int programCounter = 0; //holds the index of the next instruction to be exeuted
 
     CLoxLiteral readConstant();
-    void pushStack(CLoxLiteral val);
+    void pushStack(const CLoxLiteral& val);
     CLoxLiteral popStack();
 
+    Obj* allocateObject(const std::string &str);
+    void freeHeapObjects();
 
+    void add();
+    void subtract();
+    void multiply();
+    void divide();
+    void equal();
+    void greater();
+    void less();
+    void negate();
+    bool isTruthy();
 
 
 

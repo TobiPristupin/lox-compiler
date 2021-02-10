@@ -5,6 +5,7 @@
 #include "Compiler.h"
 #include "LoxError.h"
 #include "DebugUtils.h"
+#include "Memory.h"
 
 //if this directive is enabled the compiler prints out every opcode after emitting them to the current chunk
 #define DEBUG_COMPILER
@@ -43,7 +44,7 @@ void Compiler::registerParsingRules() {
             {TokenType::PLUS_PLUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::MINUS_MINUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::IDENTIFIER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::STRING, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::STRING, ParseRule([this] {string();}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::NUMBER, ParseRule([this] {number();}, std::nullopt, PrecedenceLevel::FACTOR)},
             {TokenType::AND, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::CLASS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -125,7 +126,7 @@ void Compiler::parsePrecedence(PrecedenceLevel precedence) {
 }
 
 void Compiler::number() {
-    CLoxLiteral value(previous());
+    CLoxLiteral value(stod(previous().lexeme));
     emitConstant(value);
 }
 
@@ -195,6 +196,18 @@ void Compiler::literal() {
         default:
             throw std::runtime_error("unreachable");
     }
+}
+
+void Compiler::string() {
+    Obj* obj = allocateHeapObj(previous().lexeme);
+    CLoxLiteral str(obj);
+    emitConstant(str);
+}
+
+Obj *Compiler::allocateHeapObj(std::string str) {
+    StringObj* obj = new StringObj(std::move(str));
+    Memory::heapObjects.push_back(obj);
+    return obj;
 }
 
 void Compiler::emitByte(std::byte byte) {

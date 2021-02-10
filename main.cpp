@@ -6,7 +6,7 @@
 #include "Scanner.h"
 #include "Compiler.h"
 #include "DebugUtils.h"
-
+#include "Memory.h"
 
 
 void displayCLoxUsage();
@@ -101,7 +101,6 @@ ExecutionResult runCode(const std::string &code){
         std::cout << error.what() << "\n";
         return ExecutionResult::RUNTIME_ERROR;
     }
-
 
     return result;
 }

@@ -2,6 +2,7 @@
 #include "VM.h"
 #include "DebugUtils.h"
 #include "LoxError.h"
+#include "Memory.h"
 
 //when this macro is enabled, the VM will print every instruction before executing it
 #define DEBUG_VM
@@ -14,77 +15,56 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
     while (true){
         //keep track of the current offset before we modify it in case the DEBUG flag is on and we want to debug print info about
         //the last executed instruction.
-        [[maybe_unused]] int currentOffset = programCounter;
+        int currentOffset = programCounter;
         std::byte instruction = chunk->readByte(programCounter);
         programCounter++;
 
-        try {
-            switch (static_cast<OpCode>(instruction)) {
-                case OpCode::OP_RETURN:
-                    return ExecutionResult::OK;
-                case OpCode::OP_PRINT:
-                    std::cout << stack.top() << "\n";
-                    break;
-                case OpCode::OP_CONSTANT:
-                    pushStack(readConstant());
-                    break;
-                case OpCode::OP_NEGATE:
-                    pushStack(-popStack());
-                    break;
-                case OpCode::OP_ADD:
-                    pushStack(popStack() + popStack());
-                    break;
-                case OpCode::OP_SUBTRACT:
-                {
-                    CLoxLiteral b = popStack();
-                    CLoxLiteral a = popStack();
-                    pushStack(a - b);
-                }
-                    break;
-                case OpCode::OP_MULTIPLY:
-                    pushStack(popStack() * popStack());
-                    break;
-                case OpCode::OP_DIVIDE:
-                {
-                    CLoxLiteral b = popStack();
-                    CLoxLiteral a = popStack();
-                    pushStack(a / b);
-                }
-                    break;
-                case OpCode::OP_TRUE:
-                    pushStack(CLoxLiteral(true));
-                    break;
-                case OpCode::OP_FALSE:
-                    pushStack(CLoxLiteral(false));
-                    break;
-                case OpCode::OP_NIL:
-                    pushStack(CLoxLiteral::Nil());
-                    break;
-                case OpCode::OP_NOT:
-                    pushStack(CLoxLiteral(!popStack().truthy()));
-                    break;
-                case OpCode::OP_EQUAL:
-                    pushStack(popStack() == popStack());
-                    break;
-                case OpCode::OP_GREATER:
-                {
-                    CLoxLiteral b = popStack();
-                    CLoxLiteral a = popStack();
-                    pushStack(CLoxLiteral(a > b));
-                }
-                    break;
-                case OpCode::OP_LESS:
-                {
-                    CLoxLiteral b = popStack();
-                    CLoxLiteral a = popStack();
-                    pushStack(CLoxLiteral(a < b));
-                }
-                    break;
-            }
-        } catch (const std::runtime_error &error) {
-            //Overloaded operators in CLoxLiteral might throw exceptions, but CLoxLiteral has no knowledge of the current line,
-            //so we catch the exception here, create a new one with the same message and with the current line, and throw it again.
-            throw LoxRuntimeError(error.what(), chunk->readLine(currentOffset));
+        switch (static_cast<OpCode>(instruction)) {
+            case OpCode::OP_RETURN:
+                freeHeapObjects();
+                return ExecutionResult::OK;
+            case OpCode::OP_PRINT:
+                std::cout << stack.top() << "\n";
+                break;
+            case OpCode::OP_CONSTANT:
+                pushStack(readConstant());
+                break;
+            case OpCode::OP_NEGATE:
+                negate();
+                break;
+            case OpCode::OP_ADD:
+                add();
+                break;
+            case OpCode::OP_SUBTRACT:
+                subtract();
+                break;
+            case OpCode::OP_MULTIPLY:
+                multiply();
+                break;
+            case OpCode::OP_DIVIDE:
+                divide();
+                break;
+            case OpCode::OP_TRUE:
+                pushStack(CLoxLiteral(true));
+                break;
+            case OpCode::OP_FALSE:
+                pushStack(CLoxLiteral(false));
+                break;
+            case OpCode::OP_NIL:
+                pushStack(CLoxLiteral::Nil());
+                break;
+            case OpCode::OP_NOT:
+                pushStack(CLoxLiteral(!isTruthy()));
+                break;
+            case OpCode::OP_EQUAL:
+                equal();
+                break;
+            case OpCode::OP_GREATER:
+                greater();
+                break;
+            case OpCode::OP_LESS:
+                less();
+                break;
         }
 
 
@@ -95,13 +75,134 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
     return ExecutionResult::OK;
 }
 
+void VM::add() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+    if (a.isNumber() && b.isNumber()){
+        pushStack(CLoxLiteral(a.getNumber() + b.getNumber()));
+    } else if (a.isObj() && b.isObj() && a.getObj()->isString() && b.getObj()->isString()){
+        auto *aObj = dynamic_cast<StringObj*>(a.getObj());
+        auto *bObj = dynamic_cast<StringObj*>(b.getObj());
+        Obj* cObj = allocateObject(aObj->str + bObj->str);
+        pushStack(CLoxLiteral(cObj));
+    } else {
+        throw LoxRuntimeError("Cannot apply operand '+' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+    }
+}
+
+void VM::subtract() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+    if (a.isNumber() && b.isNumber()){
+        pushStack(CLoxLiteral(a.getNumber() - b.getNumber()));
+    } else {
+        throw LoxRuntimeError("Cannot apply operand '-' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+    }
+}
+
+void VM::multiply() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+    if (a.isNumber() && b.isNumber()){
+        pushStack(CLoxLiteral(a.getNumber() * b.getNumber()));
+    } else {
+        throw LoxRuntimeError("Cannot apply operand '*' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+    }
+}
+
+void VM::divide() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+    if (a.isNumber() && b.isNumber()){
+        if (b.getNumber() == 0.0){
+            throw LoxRuntimeError("Cannot divide by 0", chunk->readLine(programCounter));
+        }
+        pushStack(CLoxLiteral(a.getNumber() / b.getNumber()));
+    } else {
+        throw LoxRuntimeError("Cannot apply operand '*' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+    }
+}
+
+void VM::equal() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+
+    if (a.type != b.type) pushStack(CLoxLiteral(false));
+
+    if (a.isNumber() && b.isNumber()){
+         pushStack(CLoxLiteral(a.getNumber() == b.getNumber()));
+    } else if (a.isObj() && b.isObj()){
+        if (a.getObj()->isString() && b.getObj()->isString()){
+            pushStack(CLoxLiteral(dynamic_cast<StringObj*>(a.getObj())->str == dynamic_cast<StringObj*>(b.getObj())->str));
+        }
+    } else if (a.isBoolean() && b.isBoolean()){
+        pushStack(CLoxLiteral(a.getBoolean() == b.getBoolean()));
+    } else if (a.isNil() && b.isNil()){
+         pushStack(CLoxLiteral(true));
+    }
+
+    throw std::runtime_error("This should be unreachable. Missing case");
+}
+
+void VM::greater() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+
+    if (a.isNumber() && b.isNumber()){
+         pushStack(CLoxLiteral(a.getNumber() > b.getNumber()));
+    } else if (a.isObj() && b.isObj()){
+        if (a.getObj()->isString() && b.getObj()->isString()){
+             pushStack(CLoxLiteral(dynamic_cast<StringObj*>(a.getObj()) > dynamic_cast<StringObj*>(b.getObj())));
+        }
+    } else {
+        throw LoxRuntimeError("Cannot apply operator '>' to operands of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+    }
+}
+
+void VM::less() {
+    CLoxLiteral b = popStack();
+    CLoxLiteral a = popStack();
+
+    if (a.isNumber() && b.isNumber()){
+        pushStack(CLoxLiteral(a.getNumber() < b.getNumber()));
+    } else if (a.isObj() && b.isObj()){
+        if (a.getObj()->isString() && b.getObj()->isString()){
+            pushStack(CLoxLiteral(dynamic_cast<StringObj*>(a.getObj()) < dynamic_cast<StringObj*>(b.getObj())));
+        }
+    } else {
+        throw LoxRuntimeError("Cannot apply operator '>' to operands of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+    }
+}
+
+void VM::negate() {
+    CLoxLiteral a = popStack();
+    if (a.isNumber()){
+        pushStack(CLoxLiteral(-a.getNumber()));
+    }
+
+    throw std::runtime_error("Cannot apply unary operator '-' to operand of type " + literalTypeToString(a.type));
+}
+
+bool VM::isTruthy() {
+    CLoxLiteral a = popStack();
+    if (a.isBoolean()){
+        return a.getBoolean();
+    } else if (a.isNumber()){
+        return a.getNumber() != 0;
+    } else if (a.isNil()){
+        return false;
+    }
+
+    return true;
+}
+
 CLoxLiteral VM::readConstant() {
     int constantOffset = (int) chunk->readByte(programCounter);
     programCounter++;
     return chunk->readConstant(constantOffset);
 }
 
-void VM::pushStack(CLoxLiteral val) {
+void VM::pushStack(const CLoxLiteral& val) {
     stack.push(val);
 }
 
@@ -109,6 +210,18 @@ CLoxLiteral VM::popStack() {
     CLoxLiteral val = stack.top();
     stack.pop();
     return val;
+}
+
+Obj* VM::allocateObject(const std::string &str) {
+    auto *obj = new StringObj(str);
+    Memory::heapObjects.push_back(obj);
+    return obj;
+}
+
+void VM::freeHeapObjects() {
+    for (Obj* obj : Memory::heapObjects){
+        delete obj;
+    }
 }
 
 void VM::printDebugInfo(int offset) {

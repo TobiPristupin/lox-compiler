@@ -3,60 +3,65 @@
 
 
 #include <string>
+#include <memory>
 #include "Token.h"
 
 enum class LiteralType {
-    NIL, BOOL, NUMBER, STRING
+    NIL, BOOL, NUMBER, OBJ
+};
+
+enum class ObjType {
+    STRING
+};
+
+
+class Obj {
+public:
+    ObjType type;
+
+    explicit Obj(ObjType type);
+    virtual ~Obj() = default;
+
+    bool isString() const;
+};
+
+class StringObj : public Obj {
+public:
+
+    StringObj(std::string str);
+
+    std::string str;
 };
 
 std::string literalTypeToString(LiteralType type);
 
 
-class CLoxLiteral {
+class CLoxLiteral { //This could be made into a more efficient std::variant some day (i.e. probably never....)
 public:
     LiteralType type = LiteralType::NIL;
 
-    explicit CLoxLiteral(const Token &token);
     explicit CLoxLiteral(double number);
-    explicit CLoxLiteral(const std::string &string);
-    explicit CLoxLiteral(const char* string);
+    explicit CLoxLiteral(Obj *obj);
     explicit CLoxLiteral(bool boolean);
     static CLoxLiteral Nil();
     CLoxLiteral(); //Initializes the object as NIL
 
     bool isNumber() const;
     bool isBoolean() const;
-    bool isString() const;
+    bool isObj() const;
     bool isNil() const;
-
-    bool truthy() const;
 
     double getNumber() const;
     bool getBoolean() const ;
-    std::string getString() const;
+    Obj* getObj() const;
 
     friend std::ostream& operator<<(std::ostream& os, const CLoxLiteral& object);
-    friend CLoxLiteral operator+(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator-(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator*(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator/(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator==(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator!=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator>(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator>=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator<(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    friend CLoxLiteral operator<=(const CLoxLiteral &lhs, const CLoxLiteral &rhs);
-    CLoxLiteral operator++();
-    CLoxLiteral operator--();
-    CLoxLiteral operator-() const;
-    CLoxLiteral operator!() const;
-
 
 private:
 
     double number = 0.0;
     bool boolean = false;
-    std::string str = "";
+    Obj *obj = nullptr;
 };
 
 
