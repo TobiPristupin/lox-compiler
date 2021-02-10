@@ -1,2 +1,2 @@
-Changes from original implementation of the book:
-* The lines vector for each chunk is stored using run-length encoding to save space (Challenge 1 Chapter 14).
+This is my implementation of the Lox compiler following the Crafting Interpreters book. The implementation differs quite a bit from the book's, mainly because 
+I am using C++ instead of C, and also because I already wrote an interpreter in C++ for Lox, so some code is borrowed from there.
