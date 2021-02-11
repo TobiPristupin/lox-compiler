@@ -8,7 +8,7 @@
 #include "Memory.h"
 
 //if this directive is enabled the compiler prints out every opcode after emitting them to the current chunk
-#define DEBUG_COMPILER
+//#define DEBUG_COMPILER
 
 ParseRule::ParseRule(ParseFunction parseAsPrefix, ParseFunction parseAsInfix, PrecedenceLevel precedenceLevel)
     : parseAsPrefix(parseAsPrefix), parseAsInfix(parseAsInfix), precedenceLevel(precedenceLevel) {}
@@ -77,12 +77,11 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
     chunk = std::make_shared<Chunk>();
     while (peek().type != TokenType::END_OF_FILE){
         try {
-            expression();
+            declaration();
         } catch (const LoxCompileError &error) {
             std::cout << error.what() << "\n";
             hadError = true;
-            //TODO: synchronize!
-            break;
+            synchronize();
         }
     }
 
@@ -93,6 +92,31 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
     emitByte(OpCode::OP_RETURN);
     successFlag = !hadError;
     return chunk;
+}
+
+void Compiler::declaration() {
+    statement();
+}
+
+void Compiler::statement() {
+    if (match(TokenType::PRINT)){
+        printStatement();
+        return;
+    }
+
+    expressionStatement();
+}
+
+void Compiler::expressionStatement() {
+    expression();
+    expect(TokenType::SEMICOLON, "Expected ';' after expression");
+    emitByte(OpCode::OP_POP); //discard any value that was added to the stack
+}
+
+void Compiler::printStatement() {
+    expression();
+    expect(TokenType::SEMICOLON, "Expected ';' after print statement");
+    emitByte(OpCode::OP_PRINT);
 }
 
 void Compiler::expression() {
@@ -273,7 +297,7 @@ bool Compiler::isAtEnd() {
 
 Token Compiler::expect(const TokenType &type, const std::string &message) {
     if (peek().type == type) return advance();
-    else throw LoxCompileError(message, peek().line);
+    else throw LoxCompileError(message, previous().line);
 }
 
 bool Compiler::match(const TokenType &type) {
@@ -285,9 +309,26 @@ bool Compiler::match(const TokenType &type) {
     return false;
 }
 
+//advance compiler until it reaches a new statement
 void Compiler::synchronize() {
-    //TODO: Implement synchronization
-    return;
+    while (peek().type != TokenType::END_OF_FILE){
+        if (previous().type == TokenType::SEMICOLON) return;
+
+        switch (peek().type) {
+            case TokenType::CLASS:
+            case TokenType::FUN:
+            case TokenType::VAR:
+            case TokenType::FOR:
+            case TokenType::IF:
+            case TokenType::WHILE:
+            case TokenType::PRINT:
+            case TokenType::RETURN:
+                return;
+            default: ; //do nothing
+        }
+
+        advance();
+    }
 }
 
 

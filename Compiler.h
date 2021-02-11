@@ -74,7 +74,12 @@ private:
     std::shared_ptr<Chunk> currentChunk();
 
     void parsePrecedence(PrecedenceLevel precedence);
+    void declaration();
+    void statement();
+    void expressionStatement();
     void expression();
+
+    void printStatement();
     void number();
     void grouping();
     void unary();

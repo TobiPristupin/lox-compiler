@@ -70,6 +70,9 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_LESS:
             std::cout << "OP_LESS\n";
             return offset + 1;
+        case OpCode::OP_POP:
+            std::cout << "OP_POP\n";
+            return offset + 1;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;

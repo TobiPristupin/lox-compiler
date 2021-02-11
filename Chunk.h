@@ -22,6 +22,7 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_EQUAL,
     OP_GREATER,
     OP_LESS,
+    OP_POP
 };
 
 class Chunk {

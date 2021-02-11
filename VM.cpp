@@ -24,7 +24,7 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 freeHeapObjects();
                 return ExecutionResult::OK;
             case OpCode::OP_PRINT:
-                std::cout << stack.top() << "\n";
+                std::cout << popStack() << "\n";
                 break;
             case OpCode::OP_CONSTANT:
                 pushStack(readConstant());
@@ -64,6 +64,9 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 break;
             case OpCode::OP_LESS:
                 less();
+                break;
+            case OpCode::OP_POP:
+                popStack();
                 break;
         }
 
