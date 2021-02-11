@@ -58,34 +58,37 @@ private:
      */
     bool hadError = false;
 
-
-
-    void registerParsingRules();
-
-    void emitByte(OpCode opCode);
-    void emitByte(OpCode opCode1, OpCode opcode2);
-    void emitByte(OpCode opCode1, std::byte byte);
-    void emitByte(std::byte byte);
-    void emitByte(std::byte first, std::byte second);
-    void emitConstant(const CLoxLiteral &constant);
-
-    Obj* allocateHeapObj(std::string str);
-
-    std::shared_ptr<Chunk> currentChunk();
-
     void parsePrecedence(PrecedenceLevel precedence);
     void declaration();
     void statement();
     void expressionStatement();
-    void expression();
-
+    void varDeclaration();
     void printStatement();
+
+    void expression();
     void number();
     void grouping();
     void unary();
     void binary();
     void literal();
     void string();
+
+    void registerParsingRules();
+
+    std::byte parseVariableName(); //returns the offset in the chunk where the string of the variable's name is stored
+    std::byte emitIdentifierConstant(const Token &identifier);
+    void defineVariable(std::byte identifierOffset);
+
+    void emitByte(OpCode opCode);
+    void emitByte(OpCode opCode1, OpCode opcode2);
+    void emitByte(OpCode opCode1, std::byte byte);
+    void emitByte(std::byte byte);
+    void emitByte(std::byte first, std::byte second);
+    std::byte emitConstant(const CLoxLiteral &constant); //returns the index in the constant pool the constant was stored at
+
+    Obj* allocateHeapObj(std::string str);
+
+    std::shared_ptr<Chunk> currentChunk();
 
 
     Token peek(); //peeks at current token, does not consume it

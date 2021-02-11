@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "VM.h"
 #include "DebugUtils.h"
 #include "LoxError.h"
@@ -68,6 +69,14 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
             case OpCode::OP_POP:
                 popStack();
                 break;
+            case OpCode::OP_DEFINE_GLOBAL:
+            {
+                CLoxLiteral constant = readConstant();
+                assert(constant.isObj() && constant.getObj()->isString());
+                auto name = dynamic_cast<StringObj*>(constant.getObj());
+                globals[name] = popStack();
+                popStack();//????????
+            }
         }
 
 

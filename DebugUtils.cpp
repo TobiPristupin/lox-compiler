@@ -10,8 +10,8 @@ void DebugUtils::printChunk(const Chunk *chunk, const std::string &name) {
     }
 }
 
-void DebugUtils::constantInstruction(int offset, const Chunk *chunk) {
-    std::cout << "OP_CONSTANT ";
+void DebugUtils::constantInstruction(const std::string& instructionName, int offset, const Chunk *chunk) {
+    std::cout << instructionName << " ";
     int constantOffset = (int) chunk->readByte(offset + 1);
     std::cout << chunk->readConstant(constantOffset) << "\n";
 }
@@ -26,7 +26,7 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
     auto opcode = static_cast<OpCode>(byteInstruction);
     switch (opcode) {
         case OpCode::OP_CONSTANT:
-            constantInstruction(offset, chunk);
+            constantInstruction("OP_CONSTANT", offset, chunk);
             return offset + 2;
         case OpCode::OP_RETURN:
             std::cout << "OP_RETURN\n";
@@ -73,6 +73,9 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_POP:
             std::cout << "OP_POP\n";
             return offset + 1;
+        case OpCode::OP_DEFINE_GLOBAL:
+            constantInstruction("OP_DEFINE_GLOBAL", offset, chunk);
+            return offset + 2;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;

@@ -1,2 +1,2 @@
-print 9 + 7
-print 10;
+var pepe = 10 + 1;
+var cacon;

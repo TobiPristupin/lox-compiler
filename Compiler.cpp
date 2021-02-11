@@ -95,7 +95,26 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
 }
 
 void Compiler::declaration() {
+    if (match(TokenType::VAR)){
+        varDeclaration();
+        return;
+    }
+
     statement();
+}
+
+void Compiler::varDeclaration() {
+    std::byte offset = parseVariableName();
+
+    if (match(TokenType::EQUAL)){
+        expression();
+    } else {
+        emitByte(OpCode::OP_NIL); //If the user did not provide an initializer, use nil
+    }
+
+    expect(TokenType::SEMICOLON, "Expected ';' after variable declaration");
+
+    defineVariable(offset);
 }
 
 void Compiler::statement() {
@@ -121,6 +140,21 @@ void Compiler::printStatement() {
 
 void Compiler::expression() {
     parsePrecedence(PrecedenceLevel::ASSIGNMENT);
+}
+
+std::byte Compiler::parseVariableName() {
+    Token name = expect(TokenType::IDENTIFIER, "Expected variable identifier after 'var'");
+    return emitIdentifierConstant(name);
+}
+
+std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
+    Obj* obj = new StringObj(identifier.lexeme);
+    Memory::heapObjects.push_back(obj);
+    return emitConstant(CLoxLiteral(obj));
+}
+
+void Compiler::defineVariable(std::byte identifierOffset) {
+    emitByte(OpCode::OP_DEFINE_GLOBAL, identifierOffset);
 }
 
 //Parses all tokens that have a precedence >= to the precedence passed
@@ -260,7 +294,7 @@ void Compiler::emitByte(OpCode opCode1, OpCode opcode2) {
     emitByte(opcode2);
 }
 
-void Compiler::emitConstant(const CLoxLiteral &constant) {
+std::byte Compiler::emitConstant(const CLoxLiteral &constant) {
     size_t constantOffset = currentChunk()->writeConstant(constant);
 
     ////A chunk can only hold 256 constants because 8 bits are used to represent the index of the constant in the constant pool
@@ -270,7 +304,9 @@ void Compiler::emitConstant(const CLoxLiteral &constant) {
     }
 
     emitByte(OpCode::OP_CONSTANT);
-    emitByte(static_cast<std::byte>(constantOffset));
+    auto offsetAsByte = static_cast<std::byte>(constantOffset);
+    emitByte(offsetAsByte);
+    return offsetAsByte;
 }
 
 std::shared_ptr<Chunk> Compiler::currentChunk() {

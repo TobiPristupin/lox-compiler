@@ -21,7 +21,8 @@ public:
 private:
     std::stack<CLoxLiteral> stack;
     std::shared_ptr<Chunk> chunk;
-    int programCounter = 0; //holds the index of the next instruction to be exeuted
+    std::unordered_map<StringObj*, CLoxLiteral> globals;
+    int programCounter = 0; //holds the index of the next instruction to be executed
 
     CLoxLiteral readConstant();
     void pushStack(const CLoxLiteral& val);
