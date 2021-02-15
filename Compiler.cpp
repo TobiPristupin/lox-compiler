@@ -19,7 +19,7 @@ Compiler::Compiler() {
 
 void Compiler::registerParsingRules() {
     parsingRules = {
-            {TokenType::LEFT_PAREN, ParseRule([this] {grouping();}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LEFT_PAREN, ParseRule([this] (bool canAssign) {grouping(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RIGHT_PAREN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::LEFT_BRACE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RIGHT_BRACE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -27,40 +27,40 @@ void Compiler::registerParsingRules() {
             {TokenType::RIGHT_BRACKET, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::COMMA, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::DOT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::MINUS, ParseRule([this] {unary();}, [this] {binary();}, PrecedenceLevel::TERM)},
-            {TokenType::PLUS, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::TERM)},
+            {TokenType::MINUS, ParseRule([this] (bool canAssign) {unary(canAssign);}, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::TERM)},
+            {TokenType::PLUS, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::TERM)},
             {TokenType::SEMICOLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::SLASH, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
-            {TokenType::STAR, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::FACTOR)},
+            {TokenType::SLASH, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::FACTOR)},
+            {TokenType::STAR, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::FACTOR)},
             {TokenType::COLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::BANG, ParseRule([this] {unary();}, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::BANG_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::EQUALITY)},
+            {TokenType::BANG, ParseRule([this] (bool canAssign) {unary(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::BANG_EQUAL, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::EQUALITY)},
             {TokenType::EQUAL, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::EQUAL_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::EQUALITY)},
-            {TokenType::GREATER, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
-            {TokenType::GREATER_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
-            {TokenType::LESS, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
-            {TokenType::LESS_EQUAL, ParseRule(std::nullopt, [this] {binary();}, PrecedenceLevel::COMPARISON)},
+            {TokenType::EQUAL_EQUAL, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::EQUALITY)},
+            {TokenType::GREATER, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::COMPARISON)},
+            {TokenType::GREATER_EQUAL, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::COMPARISON)},
+            {TokenType::LESS, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::COMPARISON)},
+            {TokenType::LESS_EQUAL, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::COMPARISON)},
             {TokenType::PLUS_PLUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::MINUS_MINUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::IDENTIFIER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::STRING, ParseRule([this] {string();}, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::NUMBER, ParseRule([this] {number();}, std::nullopt, PrecedenceLevel::FACTOR)},
+            {TokenType::IDENTIFIER, ParseRule([this] (bool canAssign) {variable(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::STRING, ParseRule([this] (bool canAssign) {string(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::NUMBER, ParseRule([this] (bool canAssign) {number(canAssign);}, std::nullopt, PrecedenceLevel::FACTOR)},
             {TokenType::AND, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::CLASS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::ELSE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::ELIF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::FALSE, ParseRule([this] {literal();}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::FALSE, ParseRule([this] (bool canAssign) {literal(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::FUN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::FOR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::IF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::NIL, ParseRule([this] {literal();}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::NIL, ParseRule([this] (bool canAssign) {literal(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::OR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::PRINT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RETURN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::SUPER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::THIS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::TRUE, ParseRule([this] {literal();}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::TRUE, ParseRule([this] (bool canAssign) {literal(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::VAR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::WHILE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::BREAK, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -142,6 +142,20 @@ void Compiler::expression() {
     parsePrecedence(PrecedenceLevel::ASSIGNMENT);
 }
 
+void Compiler::variable(bool canAssign) {
+    namedVariable(canAssign, previous());
+}
+
+void Compiler::namedVariable(bool canAssign, const Token &name) {
+    std::byte offset = emitIdentifierConstant(name);
+    if (canAssign && match(TokenType::EQUAL)){
+        expression();
+        emitByte(OpCode::OP_SET_GLOBAL, offset);
+    } else {
+        emitByte(OpCode::OP_GET_GLOBAL, offset);
+    }
+}
+
 std::byte Compiler::parseVariableName() {
     Token name = expect(TokenType::IDENTIFIER, "Expected variable identifier after 'var'");
     return emitIdentifierConstant(name);
@@ -171,24 +185,29 @@ void Compiler::parsePrecedence(PrecedenceLevel precedence) {
         throw LoxCompileError("Expected expression", previous().line);
     }
 
+    bool canAssign = precedence <= PrecedenceLevel::ASSIGNMENT;
     //call the function to parse the token as prefix
-    parseAsPrefix.value()();
+    parseAsPrefix.value()(canAssign);
 
     //keep parsing tokens while the precedence level of the following token is greater than the precedence passes as a param
     while (precedence <= parsingRules.at(peek().type).precedenceLevel){
         advance();
         //get rule to parse as infix and parse
         ParseFunction parseAsInfix = parsingRules.at(previous().type).parseAsInfix;
-        parseAsInfix.value()();
+        parseAsInfix.value()(canAssign);
+    }
+
+    if (canAssign && match(TokenType::EQUAL)){
+        throw LoxCompileError("Invalid assignment target", previous().line);
     }
 }
 
-void Compiler::number() {
+void Compiler::number(bool canAssign) {
     CLoxLiteral value(stod(previous().lexeme));
     emitConstant(value);
 }
 
-void Compiler::unary() {
+void Compiler::unary(bool canAssign) {
     TokenType type = previous().type;
 
     //compile operand, only parse tokens with precedence of unary or higher
@@ -205,7 +224,7 @@ void Compiler::unary() {
 
 }
 
-void Compiler::binary() {
+void Compiler::binary(bool canAssign) {
     TokenType type = previous().type;
 
     ParseRule rule = parsingRules.at(type);
@@ -238,12 +257,12 @@ void Compiler::binary() {
     }
 }
 
-void Compiler::grouping() {
+void Compiler::grouping(bool canAssign) {
     expression();
     expect(TokenType::RIGHT_PAREN, "Expected ')' after expression");
 }
 
-void Compiler::literal() {
+void Compiler::literal(bool canAssign) {
     switch (previous().type) {
         case TokenType::TRUE:
             emitByte(OpCode::OP_TRUE); break;
@@ -256,7 +275,7 @@ void Compiler::literal() {
     }
 }
 
-void Compiler::string() {
+void Compiler::string(bool canAssign) {
     Obj* obj = allocateHeapObj(previous().lexeme);
     CLoxLiteral str(obj);
     emitConstant(str);

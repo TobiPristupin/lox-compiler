@@ -6,7 +6,7 @@
 #include "Memory.h"
 
 //when this macro is enabled, the VM will print every instruction before executing it
-#define DEBUG_VM
+//#define DEBUG_VM
 
 
 ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
@@ -74,8 +74,35 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 CLoxLiteral constant = readConstant();
                 assert(constant.isObj() && constant.getObj()->isString());
                 auto name = dynamic_cast<StringObj*>(constant.getObj());
-                globals[name] = popStack();
-                popStack();//????????
+                if (globals.find(name->str) != globals.end()){
+                    throw LoxRuntimeError("Cannot redefine global variable '" + name->str + "' ", chunk->readLine(programCounter));
+                }
+                globals[name->str] = popStack();
+                popStack(); //pop variable identifier from stack
+                break;
+            }
+            case OpCode::OP_GET_GLOBAL:
+            {
+                CLoxLiteral constant = readConstant();
+                assert(constant.isObj() && constant.getObj()->isString());
+                auto name = dynamic_cast<StringObj*>(constant.getObj());
+                if (globals.find(name->str) == globals.end()){
+                    throw LoxRuntimeError("Undefined variable '" + name->str + "'", chunk->readLine(programCounter));
+                }
+                popStack(); //pop variable identifier from stack
+                pushStack(globals.at(name->str));
+                break;
+            }
+            case OpCode::OP_SET_GLOBAL:
+            {
+                CLoxLiteral constant = readConstant();
+                assert(constant.isObj() && constant.getObj()->isString());
+                auto name = dynamic_cast<StringObj*>(constant.getObj());
+                if (globals.find(name->str) == globals.end()){
+                    throw LoxRuntimeError("Undefined variable '" + name->str + "'", chunk->readLine(programCounter));
+                }
+                globals[name->str] = popStack();
+                break;
             }
         }
 

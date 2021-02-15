@@ -76,9 +76,16 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_DEFINE_GLOBAL:
             constantInstruction("OP_DEFINE_GLOBAL", offset, chunk);
             return offset + 2;
+        case OpCode::OP_GET_GLOBAL:
+            constantInstruction("OP_GET_GLOBAL", offset, chunk);
+            return offset + 2;
+        case OpCode::OP_SET_GLOBAL:
+            constantInstruction("OP_SET_GLOBAL", offset, chunk);
+            return offset + 2;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;
+
     }
 
 }

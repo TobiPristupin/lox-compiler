@@ -26,7 +26,7 @@ enum PrecedenceLevel {
     PRIMARY = 10
 };
 
-using ParseFunction = std::optional<std::function<void()>>;
+using ParseFunction = std::optional<std::function<void(bool)>>;
 
 //Parsing rule for a pratt parser. Explanation for pratt parsers here https://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/
 class ParseRule {
@@ -64,17 +64,19 @@ private:
     void expressionStatement();
     void varDeclaration();
     void printStatement();
-
     void expression();
-    void number();
-    void grouping();
-    void unary();
-    void binary();
-    void literal();
-    void string();
+
+    void number(bool canAssign);
+    void grouping(bool canAssign);
+    void unary(bool canAssign);
+    void binary(bool canAssign);
+    void literal(bool canAssign);
+    void string(bool canAssign);
+    void variable(bool canAssign);
 
     void registerParsingRules();
 
+    void namedVariable(bool canAssign, const Token &name);
     std::byte parseVariableName(); //returns the offset in the chunk where the string of the variable's name is stored
     std::byte emitIdentifierConstant(const Token &identifier);
     void defineVariable(std::byte identifierOffset);
