@@ -39,6 +39,19 @@ public:
     PrecedenceLevel precedenceLevel;
 };
 
+class LocalVariables {
+public:
+    struct Variable {
+        Token name;
+        int depth;
+
+        Variable(const Token &name, int depth);
+    };
+
+    std::vector<Variable> locals;
+    int currentScopeDepth = 0;
+};
+
 class Compiler {
 public:
     Compiler();
@@ -48,6 +61,7 @@ private:
     int current = 0; //index of current token
     std::vector<Token> tokens;
     std::shared_ptr<Chunk> chunk; //chunk that the compiler is building
+    LocalVariables localVariables;
 
     //Parselets for pratt parser
     std::unordered_map<TokenType, ParseRule> parsingRules;
@@ -57,6 +71,8 @@ private:
      * handle and report all errors, and then return hadError to let the caller handle it as they wish.
      */
     bool hadError = false;
+
+    void registerParsingRules();
 
     void parsePrecedence(PrecedenceLevel precedence);
     void declaration();
@@ -74,8 +90,13 @@ private:
     void string(bool canAssign);
     void variable(bool canAssign);
 
-    void registerParsingRules();
+    void block();
 
+    void beginScope();
+    void endScope();
+
+    void declareVariable();
+    void addLocalVariable(const Token &name);
     void namedVariable(bool canAssign, const Token &name);
     std::byte parseVariableName(); //returns the offset in the chunk where the string of the variable's name is stored
     std::byte emitIdentifierConstant(const Token &identifier);

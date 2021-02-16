@@ -6,7 +6,7 @@
 #include "Memory.h"
 
 //when this macro is enabled, the VM will print every instruction before executing it
-//#define DEBUG_VM
+#define DEBUG_VM
 
 
 ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {

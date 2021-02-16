@@ -13,6 +13,9 @@
 ParseRule::ParseRule(ParseFunction parseAsPrefix, ParseFunction parseAsInfix, PrecedenceLevel precedenceLevel)
     : parseAsPrefix(parseAsPrefix), parseAsInfix(parseAsInfix), precedenceLevel(precedenceLevel) {}
 
+
+LocalVariables::Variable::Variable(const Token &name, int depth) : name(name), depth(depth) {}
+
 Compiler::Compiler() {
     registerParsingRules();
 }
@@ -76,13 +79,7 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
     this->tokens = tokens;
     chunk = std::make_shared<Chunk>();
     while (peek().type != TokenType::END_OF_FILE){
-        try {
-            declaration();
-        } catch (const LoxCompileError &error) {
-            std::cout << error.what() << "\n";
-            hadError = true;
-            synchronize();
-        }
+        declaration();
     }
 
     if (!hadError){
@@ -95,12 +92,18 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
 }
 
 void Compiler::declaration() {
-    if (match(TokenType::VAR)){
-        varDeclaration();
-        return;
+    try {
+        if (match(TokenType::VAR)){
+            varDeclaration();
+            return;
+        } else {
+            statement();
+        }
+    } catch (const LoxCompileError &error) {
+        std::cout << error.what() << "\n";
+        hadError = true;
+        synchronize();
     }
-
-    statement();
 }
 
 void Compiler::varDeclaration() {
@@ -121,9 +124,22 @@ void Compiler::statement() {
     if (match(TokenType::PRINT)){
         printStatement();
         return;
+    } else if (match(TokenType::LEFT_BRACE)){
+        beginScope();
+        block();
+        endScope();
+        return;
     }
 
     expressionStatement();
+}
+
+void Compiler::block() {
+    while (peek().type != TokenType::RIGHT_BRACE && peek().type != TokenType::END_OF_FILE){
+        declaration();
+    }
+
+    expect(TokenType::RIGHT_BRACE, "Expected '}' after block");
 }
 
 void Compiler::expressionStatement() {
@@ -146,6 +162,21 @@ void Compiler::variable(bool canAssign) {
     namedVariable(canAssign, previous());
 }
 
+void Compiler::beginScope() {
+    localVariables.currentScopeDepth++;
+}
+
+void Compiler::endScope() {
+    localVariables.currentScopeDepth--;
+
+    auto reverse_it = localVariables.locals.rbegin();
+    while (reverse_it != localVariables.locals.rend() && reverse_it->depth > localVariables.currentScopeDepth) {
+        //https://stackoverflow.com/questions/1830158/how-to-call-erase-with-a-reverse-iterator/50282077#50282077
+        reverse_it = decltype(reverse_it) (localVariables.locals.erase(std::next(reverse_it).base()));
+        emitByte(OpCode::OP_POP);
+    }
+}
+
 void Compiler::namedVariable(bool canAssign, const Token &name) {
     std::byte offset = emitIdentifierConstant(name);
     if (canAssign && match(TokenType::EQUAL)){
@@ -158,7 +189,38 @@ void Compiler::namedVariable(bool canAssign, const Token &name) {
 
 std::byte Compiler::parseVariableName() {
     Token name = expect(TokenType::IDENTIFIER, "Expected variable identifier after 'var'");
+
+    declareVariable();
+    if (localVariables.currentScopeDepth > 0) return std::byte{0};
+
     return emitIdentifierConstant(name);
+}
+
+void Compiler::declareVariable() {
+    if (localVariables.currentScopeDepth == 0) return;
+
+    Token name = previous();
+
+    for (auto reverse_it = localVariables.locals.rbegin(); reverse_it != localVariables.locals.rend(); ++reverse_it){
+        if (reverse_it->depth != -1 && reverse_it->depth < localVariables.currentScopeDepth){
+            break;
+        }
+
+        if (reverse_it->name.lexeme == name.lexeme){
+            throw LoxCompileError("Cannot redefine variable '" + name.lexeme + "'", previous().line);
+        }
+    }
+
+    addLocalVariable(name);
+}
+
+void Compiler::addLocalVariable(const Token &name) {
+    if (localVariables.locals.size() == 256){
+        throw LoxCompileError("Too many local variables in scope", previous().line);
+    }
+
+    LocalVariables::Variable v(name, localVariables.currentScopeDepth);
+    localVariables.locals.push_back(v);
 }
 
 std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
@@ -168,6 +230,10 @@ std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
 }
 
 void Compiler::defineVariable(std::byte identifierOffset) {
+    if (localVariables.currentScopeDepth > 0){
+        return;
+    }
+
     emitByte(OpCode::OP_DEFINE_GLOBAL, identifierOffset);
 }
 
