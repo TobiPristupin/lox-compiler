@@ -101,6 +101,8 @@ private:
     std::byte parseVariableName(); //returns the offset in the chunk where the string of the variable's name is stored
     std::byte emitIdentifierConstant(const Token &identifier);
     void defineVariable(std::byte identifierOffset);
+    std::optional<std::byte> resolveLocalVariable(const Token &name);
+    void markLocalVariableInitialized();
 
     void emitByte(OpCode opCode);
     void emitByte(OpCode opCode1, OpCode opcode2);

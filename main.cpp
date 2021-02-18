@@ -6,7 +6,6 @@
 #include "Scanner.h"
 #include "Compiler.h"
 #include "DebugUtils.h"
-#include "Memory.h"
 
 
 void displayCLoxUsage();

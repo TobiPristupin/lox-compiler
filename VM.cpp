@@ -6,7 +6,7 @@
 #include "Memory.h"
 
 //when this macro is enabled, the VM will print every instruction before executing it
-#define DEBUG_VM
+//#define DEBUG_VM
 
 
 ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
@@ -104,6 +104,18 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 globals[name->str] = popStack();
                 break;
             }
+            case OpCode::OP_GET_LOCAL:
+            {
+                int localIndex = (int) chunk->readByte(programCounter);
+                programCounter++;
+                pushStack(stack.at(localIndex));
+                break;
+            }
+            case OpCode::OP_SET_LOCAL:
+                int localIndex = (int) chunk->readByte(programCounter);
+                programCounter++;
+                stack.at(localIndex) = stack.back();
+                break;
         }
 
 
@@ -217,6 +229,7 @@ void VM::negate() {
     CLoxLiteral a = popStack();
     if (a.isNumber()){
         pushStack(CLoxLiteral(-a.getNumber()));
+        return;
     }
 
     throw std::runtime_error("Cannot apply unary operator '-' to operand of type " + literalTypeToString(a.type));
@@ -242,12 +255,12 @@ CLoxLiteral VM::readConstant() {
 }
 
 void VM::pushStack(const CLoxLiteral& val) {
-    stack.push(val);
+    stack.push_back(val);
 }
 
 CLoxLiteral VM::popStack() {
-    CLoxLiteral val = stack.top();
-    stack.pop();
+    CLoxLiteral val = stack.back();
+    stack.pop_back();
     return val;
 }
 
@@ -268,17 +281,9 @@ void VM::printDebugInfo(int offset) {
     std::cout << "\tInstruction: ";
     DebugUtils::printInstruction(offset, chunk.get());
     std::cout << "\tStack: [";
-    std::stack<CLoxLiteral> copy(stack);
-
-    while (!copy.empty()){
-        std::cout << copy.top();
-        copy.pop();
-
-        if (!copy.empty()){
-            std::cout << ", ";
-        }
+    for (auto reverse_it = stack.rbegin(); reverse_it != stack.rend(); reverse_it++){
+        std::cout << *reverse_it << ", ";
     }
-
     std::cout << "]\n";
 }
 

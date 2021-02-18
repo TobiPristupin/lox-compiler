@@ -178,13 +178,40 @@ void Compiler::endScope() {
 }
 
 void Compiler::namedVariable(bool canAssign, const Token &name) {
-    std::byte offset = emitIdentifierConstant(name);
+    OpCode getOpCode, setOpCode;
+    std::optional<std::byte> offset = resolveLocalVariable(name);
+
+    if (offset.has_value()){
+        getOpCode = OpCode::OP_GET_LOCAL;
+        setOpCode = OpCode::OP_SET_LOCAL;
+    } else {
+        getOpCode = OpCode::OP_GET_GLOBAL;
+        setOpCode = OpCode::OP_SET_GLOBAL;
+        offset = emitIdentifierConstant(name);
+    }
+
     if (canAssign && match(TokenType::EQUAL)){
         expression();
-        emitByte(OpCode::OP_SET_GLOBAL, offset);
+        emitByte(setOpCode, offset.value());
     } else {
-        emitByte(OpCode::OP_GET_GLOBAL, offset);
+        emitByte(getOpCode, offset.value());
     }
+}
+
+std::optional<std::byte> Compiler::resolveLocalVariable(const Token &name) {
+    for (auto reverse_it = localVariables.locals.rbegin(); reverse_it != localVariables.locals.rend(); ++reverse_it){
+        if (reverse_it->name.lexeme == name.lexeme){
+            if (reverse_it->depth == -1){
+                throw LoxCompileError("Can't read local variable in its own initializer", previous().line);
+            }
+
+            //https://stackoverflow.com/a/24998000  safe to narrowly cast to int because maximum amount of locals is 256
+            int index = (int) std::distance(localVariables.locals.begin(), reverse_it.base()) - 1;
+            return (std::byte) index;
+        }
+    }
+
+    return std::nullopt;
 }
 
 std::byte Compiler::parseVariableName() {
@@ -219,7 +246,8 @@ void Compiler::addLocalVariable(const Token &name) {
         throw LoxCompileError("Too many local variables in scope", previous().line);
     }
 
-    LocalVariables::Variable v(name, localVariables.currentScopeDepth);
+    int uninitializedSentinel = -1;
+    LocalVariables::Variable v(name, uninitializedSentinel);
     localVariables.locals.push_back(v);
 }
 
@@ -231,10 +259,15 @@ std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
 
 void Compiler::defineVariable(std::byte identifierOffset) {
     if (localVariables.currentScopeDepth > 0){
+        markLocalVariableInitialized();
         return;
     }
 
     emitByte(OpCode::OP_DEFINE_GLOBAL, identifierOffset);
+}
+
+void Compiler::markLocalVariableInitialized() {
+    localVariables.locals.back().depth = localVariables.currentScopeDepth;
 }
 
 //Parses all tokens that have a precedence >= to the precedence passed
@@ -282,8 +315,10 @@ void Compiler::unary(bool canAssign) {
     switch (type) {
         case TokenType::MINUS:
             emitByte(static_cast<std::byte>(OpCode::OP_NEGATE));
+            break;
         case TokenType::BANG:
             emitByte(static_cast<std::byte>(OpCode::OP_NOT));
+            break;
         default:
             return; //unreachable
     }

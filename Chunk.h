@@ -25,7 +25,9 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_POP,
     OP_DEFINE_GLOBAL,
     OP_GET_GLOBAL,
-    OP_SET_GLOBAL
+    OP_SET_GLOBAL,
+    OP_GET_LOCAL,
+    OP_SET_LOCAL
 };
 
 class Chunk {
