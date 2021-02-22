@@ -27,7 +27,10 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_GET_GLOBAL,
     OP_SET_GLOBAL,
     OP_GET_LOCAL,
-    OP_SET_LOCAL
+    OP_SET_LOCAL,
+    OP_JUMP_IF_FALSE,
+    OP_JUMP,
+    OP_LOOP
 };
 
 class Chunk {
@@ -51,7 +54,6 @@ public:
     int readLine(int offset) const;
     size_t lineCount() const;
 
-private:
     std::vector<std::byte> bytecode;
     std::vector<CLoxLiteral> constants;
     std::vector<int> lines;

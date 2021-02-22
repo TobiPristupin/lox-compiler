@@ -10,6 +10,7 @@ namespace DebugUtils {
     //prints instruction and returns offset of next instruction
     int printInstruction(int offset, const Chunk *chunk);
     void constantInstruction(const std::string& instructionName, int offset, const Chunk *chunk);
+    void jumpInstruction(const std::string &instructionName, int sign, int offset, const Chunk *chunk);
 
 }
 

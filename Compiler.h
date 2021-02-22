@@ -80,6 +80,9 @@ private:
     void expressionStatement();
     void varDeclaration();
     void printStatement();
+    void ifStatement();
+    void whileStatement();
+    void forStatement();
     void expression();
 
     void number(bool canAssign);
@@ -89,6 +92,8 @@ private:
     void literal(bool canAssign);
     void string(bool canAssign);
     void variable(bool canAssign);
+    void parseAnd(bool canAssign);
+    void parseOr(bool canAssign);
 
     void block();
 
@@ -110,6 +115,9 @@ private:
     void emitByte(std::byte byte);
     void emitByte(std::byte first, std::byte second);
     std::byte emitConstant(const CLoxLiteral &constant); //returns the index in the constant pool the constant was stored at
+    int emitJump(OpCode instruction); //emits a jump instruction and fills in the instruction operand with placeholders
+    void patchJump(int offset);//changes an existing jump instruction operands to offset
+    void emitLoop(int loopStart);
 
     Obj* allocateHeapObj(std::string str);
 

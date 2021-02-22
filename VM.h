@@ -39,7 +39,7 @@ private:
     void greater();
     void less();
     void negate();
-    bool isTruthy();
+    bool isTruthy(const CLoxLiteral &literal);
 
 
 

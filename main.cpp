@@ -44,7 +44,7 @@ ExecutionResult runScript(const std::string &filename){
         std::cout << error.what() << "\n";
         return ExecutionResult::COMPILE_ERROR;
     } catch (...) {
-        std::cout << "Unknown error ocurred while reading file\n";
+        std::cout << "Unknown error occurred while reading file\n";
         return ExecutionResult::COMPILE_ERROR;
     }
 

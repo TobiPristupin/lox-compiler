@@ -16,6 +16,11 @@ void DebugUtils::constantInstruction(const std::string& instructionName, int off
     std::cout << chunk->readConstant(constantOffset) << "\n";
 }
 
+void DebugUtils::jumpInstruction(const std::string &instructionName, int sign, int offset, const Chunk *chunk) {
+    uint16_t jump = ((uint16_t) chunk->readByte(offset+1) >> 8u) | (uint16_t) chunk->readByte(offset + 2);
+    std::cout << instructionName << " " << jump * sign << "\n";
+}
+
 
 //Prints instruction and returns the offset of next instruction. Instructions are not always one byte
 //(constants are 2 bytes for example) so this function takes care of that.
@@ -88,6 +93,15 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_SET_LOCAL:
             constantInstruction("OP_SET_LOCAL", offset, chunk);
             return offset + 2;
+        case OpCode::OP_JUMP_IF_FALSE:
+            jumpInstruction("OP_JUMP_IF_FALSE", 1, offset, chunk);
+            return offset + 3;
+        case OpCode::OP_JUMP:
+            jumpInstruction("OP_JUMP", 1, offset, chunk);
+            return offset + 3;
+        case OpCode::OP_LOOP:
+            jumpInstruction("OP_LOOP", -1, offset, chunk);
+            return offset + 3;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;

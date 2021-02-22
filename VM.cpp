@@ -55,7 +55,7 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 pushStack(CLoxLiteral::Nil());
                 break;
             case OpCode::OP_NOT:
-                pushStack(CLoxLiteral(!isTruthy()));
+                pushStack(CLoxLiteral(!isTruthy(popStack())));
                 break;
             case OpCode::OP_EQUAL:
                 equal();
@@ -111,11 +111,33 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 pushStack(stack.at(localIndex));
                 break;
             }
-            case OpCode::OP_SET_LOCAL:
+            case OpCode::OP_SET_LOCAL: {
                 int localIndex = (int) chunk->readByte(programCounter);
                 programCounter++;
                 stack.at(localIndex) = stack.back();
                 break;
+            }
+            case OpCode::OP_JUMP_IF_FALSE: {
+                uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
+                programCounter += 2;
+                if (!isTruthy(stack.back())){
+                    programCounter += offset;
+                }
+
+                break;
+            }
+            case OpCode::OP_JUMP: {
+                uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
+                programCounter += 2 + offset;
+                break;
+            }
+            case OpCode::OP_LOOP: {
+                uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
+                programCounter += 2;
+                programCounter -= offset + 1;
+                break;
+            }
+
         }
 
 
@@ -235,8 +257,7 @@ void VM::negate() {
     throw std::runtime_error("Cannot apply unary operator '-' to operand of type " + literalTypeToString(a.type));
 }
 
-bool VM::isTruthy() {
-    CLoxLiteral a = popStack();
+bool VM::isTruthy(const CLoxLiteral &a) {
     if (a.isBoolean()){
         return a.getBoolean();
     } else if (a.isNumber()){

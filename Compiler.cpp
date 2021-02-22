@@ -47,9 +47,10 @@ void Compiler::registerParsingRules() {
             {TokenType::PLUS_PLUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::MINUS_MINUS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::IDENTIFIER, ParseRule([this] (bool canAssign) {variable(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::IDENTIFIER, ParseRule([this] (bool canAssign) {variable(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::STRING, ParseRule([this] (bool canAssign) {string(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::NUMBER, ParseRule([this] (bool canAssign) {number(canAssign);}, std::nullopt, PrecedenceLevel::FACTOR)},
-            {TokenType::AND, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::AND, ParseRule(std::nullopt, [this] (bool canAssign) {parseAnd(canAssign);}, PrecedenceLevel::AND)},
             {TokenType::CLASS, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::ELSE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::ELIF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -58,7 +59,7 @@ void Compiler::registerParsingRules() {
             {TokenType::FOR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::IF, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::NIL, ParseRule([this] (bool canAssign) {literal(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::OR, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::OR, ParseRule(std::nullopt, [this] (bool canAssign) {parseOr(canAssign);}, PrecedenceLevel::OR)},
             {TokenType::PRINT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RETURN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::SUPER, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -123,15 +124,20 @@ void Compiler::varDeclaration() {
 void Compiler::statement() {
     if (match(TokenType::PRINT)){
         printStatement();
-        return;
     } else if (match(TokenType::LEFT_BRACE)){
         beginScope();
         block();
         endScope();
-        return;
+    } else if (match(TokenType::IF)){
+        ifStatement();
+    } else if (match(TokenType::WHILE)) {
+        whileStatement();
+    } else if (match(TokenType::FOR)){
+        forStatement();
+    } else {
+        expressionStatement();
     }
 
-    expressionStatement();
 }
 
 void Compiler::block() {
@@ -140,6 +146,92 @@ void Compiler::block() {
     }
 
     expect(TokenType::RIGHT_BRACE, "Expected '}' after block");
+}
+
+void Compiler::ifStatement() {
+    expect(TokenType::LEFT_PAREN, "Expected '(' after if statement");
+    expression();
+    expect(TokenType::RIGHT_PAREN, "Expected ')' after if condition");
+
+    int thenJump = emitJump(OpCode::OP_JUMP_IF_FALSE);
+    emitByte(OpCode::OP_POP);
+    statement();
+
+    int elseJump = emitJump(OpCode::OP_JUMP);
+
+    patchJump(thenJump);
+
+    emitByte(OpCode::OP_POP);
+    if (match(TokenType::ELSE)){
+        statement();
+    }
+
+    patchJump(elseJump);
+}
+
+void Compiler::whileStatement() {
+    int loopStart = currentChunk()->byteCount();
+
+    expect(TokenType::LEFT_PAREN, "Expected '(' after while");
+    expression();
+    expect(TokenType::RIGHT_PAREN, "Expected ')' after while condition");
+
+    int exitJump = emitJump(OpCode::OP_JUMP_IF_FALSE);
+    emitByte(OpCode::OP_POP);
+    statement();
+
+    emitLoop(loopStart);
+
+    patchJump(exitJump);
+    emitByte(OpCode::OP_POP);
+}
+
+void Compiler::forStatement() {
+    beginScope();
+
+    expect(TokenType::LEFT_PAREN, "Expected '(' after for");
+    if (match(TokenType::SEMICOLON)){
+        //no initializer
+    } else if (match(TokenType::VAR)){
+        varDeclaration();
+    } else {
+        expressionStatement();
+    }
+
+
+    int loopStart = currentChunk()->byteCount();
+
+    int exitJump = -1;
+    if (!match(TokenType::SEMICOLON)){
+        expression();
+        expect(TokenType::SEMICOLON, "Expected ';' after loop condition");
+        exitJump = emitJump(OpCode::OP_JUMP_IF_FALSE);
+        emitByte(OpCode::OP_POP); //pop condition from stack
+    }
+
+    if (!match(TokenType::RIGHT_PAREN)){
+        int bodyJump = emitJump(OpCode::OP_JUMP);
+        int incrementStart = currentChunk()->byteCount();
+        expression();
+        emitByte(OpCode::OP_POP);
+        expect(TokenType::RIGHT_PAREN, "Expected ')' after for");
+
+        emitLoop(loopStart);
+        loopStart = incrementStart;
+        patchJump(bodyJump);
+    }
+
+
+    statement();
+
+    emitLoop(loopStart);
+
+    if (exitJump != -1){
+        patchJump(exitJump);
+        emitByte(OpCode::OP_POP);
+    }
+
+    endScope();
 }
 
 void Compiler::expressionStatement() {
@@ -382,10 +474,58 @@ void Compiler::string(bool canAssign) {
     emitConstant(str);
 }
 
+void Compiler::parseAnd(bool canAssign) {
+    int endJump = emitJump(OpCode::OP_JUMP_IF_FALSE);
+    emitByte(OpCode::OP_POP);
+    parsePrecedence(PrecedenceLevel::AND);
+    patchJump(endJump);
+}
+
+void Compiler::parseOr(bool canAssign) {
+    int elseJump = emitJump(OpCode::OP_JUMP_IF_FALSE);
+    int endJump = emitJump(OpCode::OP_JUMP);
+
+    patchJump(elseJump);
+    emitByte(OpCode::OP_POP);
+
+    parsePrecedence(PrecedenceLevel::OR);
+    patchJump(endJump);
+}
+
 Obj *Compiler::allocateHeapObj(std::string str) {
     StringObj* obj = new StringObj(std::move(str));
     Memory::heapObjects.push_back(obj);
     return obj;
+}
+
+int Compiler::emitJump(OpCode instruction) {
+    emitByte(instruction);
+    emitByte(std::byte(0xff));
+    emitByte(std::byte(0xff));
+    return currentChunk()->byteCount() - 2;
+}
+
+void Compiler::patchJump(int offset) {
+    // -2 to adjust for the bytecode for the jump offset itself.
+    unsigned int jump = currentChunk()->byteCount() - offset - 2;
+
+    if (jump > UINT16_MAX){
+        throw LoxCompileError("Too much code to jump over", previous().line);
+    }
+
+    currentChunk()->bytecode[offset] = std::byte((jump >> 8u) & 0xff);
+    currentChunk()->bytecode[offset+1] = std::byte(jump & 0xff);
+ }
+
+void Compiler::emitLoop(int loopStart) {
+    int offset = currentChunk()->byteCount() - loopStart + 2;
+    if (offset > UINT16_MAX){
+        throw LoxCompileError("Loop body too large", previous().line);
+    }
+
+    emitByte(OpCode::OP_LOOP);
+    emitByte(std::byte((offset >> 8u) & 0xff));
+    emitByte(std::byte(offset & 0xff));
 }
 
 void Compiler::emitByte(std::byte byte) {
