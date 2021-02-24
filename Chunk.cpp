@@ -1,5 +1,6 @@
 
 #include "Chunk.h"
+#include "CLoxLiteral.h"
 
 size_t Chunk::write(std::byte code, int line) {
     bytecode.push_back(code);

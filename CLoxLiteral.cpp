@@ -6,11 +6,17 @@
 
 Obj::Obj(ObjType type) : type(type) {}
 
+Obj::~Obj() = default;
+
 bool Obj::isString() const {
     return type == ObjType::STRING;
 }
 
-StringObj::StringObj(std::string str) : Obj(ObjType::STRING), str(std::move(str)) {}
+StringObj::StringObj(std::unique_ptr<std::string> str) : Obj(ObjType::STRING), str(std::move(str)) {}
+
+
+FunctionObj::FunctionObj(std::unique_ptr<std::string> name, std::unique_ptr<Chunk> chunk, int arity) :
+    Obj(ObjType::FUNCTION), name(std::move(name)), chunk(std::move(chunk)), arity(arity) {}
 
 
 CLoxLiteral::CLoxLiteral(double number) : type(LiteralType::NUMBER), number(number) {}
@@ -82,12 +88,15 @@ std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
         case LiteralType::OBJ:
         {
             switch (object.getObj()->type) {
-                case ObjType::STRING:
-                    std::string s = dynamic_cast<StringObj*>(object.getObj())->str;
+                case ObjType::STRING: {
+                    std::string s = *dynamic_cast<StringObj *>(object.getObj())->str;
                     utils::replaceAll(s, "\\n", "\n");
                     utils::replaceAll(s, "\\t", "\t");
                     os << s;
                     return os;
+                }
+                case ObjType::FUNCTION:
+                    os << std::string("<function ") << *dynamic_cast<FunctionObj*>(object.getObj())->name << std::string(">");
             }
         }
         default:

@@ -12,7 +12,7 @@
 
 
 
-enum PrecedenceLevel {
+enum class PrecedenceLevel {
     NONE = 0,
     ASSIGNMENT = 1,  // =
     OR = 2,          // or
@@ -25,6 +25,11 @@ enum PrecedenceLevel {
     CALL = 9,        // . ()
     PRIMARY = 10
 };
+
+enum class FunctionType {
+    FUNCTION, SCRIPT
+};
+
 
 using ParseFunction = std::optional<std::function<void(bool)>>;
 
@@ -55,12 +60,15 @@ public:
 class Compiler {
 public:
     Compiler();
-    std::shared_ptr<Chunk> compile(const std::vector<Token> &tokens, bool &successFlag);
+    FunctionObj* compile(const std::vector<Token> &tokens, bool &successFlag);
 
 private:
     int current = 0; //index of current token
     std::vector<Token> tokens;
-    std::shared_ptr<Chunk> chunk; //chunk that the compiler is building
+
+    FunctionObj* function = nullptr; //function that the compiler is currently building
+    FunctionType functionType;
+
     LocalVariables localVariables;
 
     //Parselets for pratt parser
@@ -119,9 +127,7 @@ private:
     void patchJump(int offset);//changes an existing jump instruction operands to offset
     void emitLoop(int loopStart);
 
-    Obj* allocateHeapObj(std::string str);
-
-    std::shared_ptr<Chunk> currentChunk();
+    Chunk* currentChunk();
 
 
     Token peek(); //peeks at current token, does not consume it

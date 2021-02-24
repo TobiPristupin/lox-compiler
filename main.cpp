@@ -13,6 +13,7 @@ ExecutionResult runRepl();
 ExecutionResult runScript(const std::string& filename);
 ExecutionResult runCode(const std::string &code);
 
+
 int main(int argc, char *argv[]) {
     ExecutionResult result;
 
@@ -85,8 +86,8 @@ ExecutionResult runCode(const std::string &code){
 
     Compiler compiler;
     bool successFlag;
-    std::shared_ptr<Chunk> chunk = compiler.compile(tokens, successFlag);
-    DebugUtils::printChunk(chunk.get(), "main");
+    FunctionObj *function = compiler.compile(tokens, successFlag);
+    DebugUtils::printChunk(function->chunk.get(), "main");
 
     if (!successFlag){
         return ExecutionResult::COMPILE_ERROR;
@@ -95,7 +96,7 @@ ExecutionResult runCode(const std::string &code){
     VM vm;
     ExecutionResult result;
     try {
-        result = vm.execute(chunk);
+        result = vm.execute(function->chunk.get());
     } catch (const LoxRuntimeError &error) {
         std::cout << error.what() << "\n";
         return ExecutionResult::RUNTIME_ERROR;

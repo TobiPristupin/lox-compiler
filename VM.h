@@ -6,6 +6,7 @@
 #include <stack>
 #include <functional>
 #include "Chunk.h"
+#include "CLoxLiteral.h"
 
 enum class ExecutionResult {
     OK,
@@ -15,21 +16,19 @@ enum class ExecutionResult {
 
 class VM {
 public:
-    ExecutionResult execute(std::shared_ptr<Chunk> chunk);
+    ExecutionResult execute(Chunk *chunk);
 
 
 private:
     std::vector<CLoxLiteral> stack;
-    std::shared_ptr<Chunk> chunk;
+    Chunk *chunk;
     std::unordered_map<std::string, CLoxLiteral> globals;
     int programCounter = 0; //holds the index of the next instruction to be executed
 
     CLoxLiteral readConstant();
+    StringObj* readConstantAsStringObj();
     void pushStack(const CLoxLiteral& val);
     CLoxLiteral popStack();
-
-    Obj* allocateObject(const std::string &str);
-    void freeHeapObjects();
 
     void add();
     void subtract();
@@ -41,9 +40,19 @@ private:
     void negate();
     bool isTruthy(const CLoxLiteral &literal);
 
+    void defineGlobal();
+    void getGlobal();
+    void setGlobal();
+    void setLocal();
+    void getLocal();
+
+    uint16_t readTwoByteOffset();
+
 
 
     void printDebugInfo(int offset);
+
+
 };
 
 

@@ -4,42 +4,60 @@
 #include <bitset>
 #include <utility>
 #include <vector>
+#include <memory>
+
 
 enum class LiteralType {
     NIL, BOOL, NUMBER, OBJ
 };
 
 enum class ObjType {
-    STRING
+    STRING, FUNCTION
 };
 
 
 class Obj {
 public:
-
-    explicit Obj(ObjType type) : type(type) {}
-    virtual ~Obj() = default;
-
     ObjType type;
+
+    explicit Obj(ObjType type);
+    virtual ~Obj() = 0;
+
+    bool isString() const;
 };
+
+Obj::~Obj() = default;
 
 class StringObj : public Obj {
 public:
 
-    explicit StringObj(std::string ptr) : str(std::move(ptr)), Obj(ObjType::STRING) {}
-    ~StringObj() override {
-        std::cout << "calling string destructor\n";
-    }
+    explicit StringObj(std::unique_ptr<std::string> str);
 
-    std::string str;
+    std::unique_ptr<std::string> str;
 };
 
-int main(){
-    auto *str = new StringObj("cacon");
-    std::vector<Obj*> objects;
-    objects.push_back(str);
+class FunctionObj : public Obj {
+public:
+    FunctionObj(std::unique_ptr<std::string> name, int arity);
 
-    for (Obj *obj : objects){
-        delete obj;
-    }
+    int arity;
+    std::unique_ptr<std::string> name;
+};
+
+
+Obj::Obj(ObjType type) : type(type) {}
+
+bool Obj::isString() const {
+    return type == ObjType::STRING;
+}
+
+StringObj::StringObj(std::unique_ptr<std::string> str) : Obj(ObjType::STRING), str(std::move(str)) {}
+
+
+FunctionObj::FunctionObj(std::unique_ptr<std::string> name, int arity) :
+        Obj(ObjType::FUNCTION), name(std::move(name)), arity(arity) {}
+
+int main(){
+    Obj *obj = new StringObj(std::make_unique<std::string>("hola"));
+    std::cout << *dynamic_cast<StringObj*>(obj)->str << "\n";
 }

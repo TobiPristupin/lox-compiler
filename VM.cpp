@@ -9,7 +9,7 @@
 //#define DEBUG_VM
 
 
-ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
+ExecutionResult VM::execute(Chunk *chunk) {
     programCounter = 0;
     this->chunk = chunk;
 
@@ -22,7 +22,7 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
 
         switch (static_cast<OpCode>(instruction)) {
             case OpCode::OP_RETURN:
-                freeHeapObjects();
+                Memory::freeAllHeapObjects();
                 return ExecutionResult::OK;
             case OpCode::OP_PRINT:
                 std::cout << popStack() << "\n";
@@ -70,56 +70,22 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 popStack();
                 break;
             case OpCode::OP_DEFINE_GLOBAL:
-            {
-                CLoxLiteral constant = readConstant();
-                assert(constant.isObj() && constant.getObj()->isString());
-                auto name = dynamic_cast<StringObj*>(constant.getObj());
-                if (globals.find(name->str) != globals.end()){
-                    throw LoxRuntimeError("Cannot redefine global variable '" + name->str + "' ", chunk->readLine(programCounter));
-                }
-                globals[name->str] = popStack();
-                popStack(); //pop variable identifier from stack
+                defineGlobal();
                 break;
-            }
             case OpCode::OP_GET_GLOBAL:
-            {
-                CLoxLiteral constant = readConstant();
-                assert(constant.isObj() && constant.getObj()->isString());
-                auto name = dynamic_cast<StringObj*>(constant.getObj());
-                if (globals.find(name->str) == globals.end()){
-                    throw LoxRuntimeError("Undefined variable '" + name->str + "'", chunk->readLine(programCounter));
-                }
-                popStack(); //pop variable identifier from stack
-                pushStack(globals.at(name->str));
+                getGlobal();
                 break;
-            }
             case OpCode::OP_SET_GLOBAL:
-            {
-                CLoxLiteral constant = readConstant();
-                assert(constant.isObj() && constant.getObj()->isString());
-                auto name = dynamic_cast<StringObj*>(constant.getObj());
-                if (globals.find(name->str) == globals.end()){
-                    throw LoxRuntimeError("Undefined variable '" + name->str + "'", chunk->readLine(programCounter));
-                }
-                globals[name->str] = popStack();
+                setGlobal();
                 break;
-            }
             case OpCode::OP_GET_LOCAL:
-            {
-                int localIndex = (int) chunk->readByte(programCounter);
-                programCounter++;
-                pushStack(stack.at(localIndex));
+                getLocal();
                 break;
-            }
-            case OpCode::OP_SET_LOCAL: {
-                int localIndex = (int) chunk->readByte(programCounter);
-                programCounter++;
-                stack.at(localIndex) = stack.back();
+            case OpCode::OP_SET_LOCAL:
+                setLocal();
                 break;
-            }
             case OpCode::OP_JUMP_IF_FALSE: {
-                uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
-                programCounter += 2;
+                uint16_t offset = readTwoByteOffset();
                 if (!isTruthy(stack.back())){
                     programCounter += offset;
                 }
@@ -127,13 +93,12 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
                 break;
             }
             case OpCode::OP_JUMP: {
-                uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
-                programCounter += 2 + offset;
+                uint16_t offset = readTwoByteOffset();
+                programCounter += offset;
                 break;
             }
             case OpCode::OP_LOOP: {
-                uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
-                programCounter += 2;
+                uint16_t offset = readTwoByteOffset();
                 programCounter -= offset + 1;
                 break;
             }
@@ -148,6 +113,8 @@ ExecutionResult VM::execute(std::shared_ptr<Chunk> chunk) {
     return ExecutionResult::OK;
 }
 
+
+
 void VM::add() {
     CLoxLiteral b = popStack();
     CLoxLiteral a = popStack();
@@ -156,7 +123,7 @@ void VM::add() {
     } else if (a.isObj() && b.isObj() && a.getObj()->isString() && b.getObj()->isString()){
         auto *aObj = dynamic_cast<StringObj*>(a.getObj());
         auto *bObj = dynamic_cast<StringObj*>(b.getObj());
-        Obj* cObj = allocateObject(aObj->str + bObj->str);
+        Obj* cObj = Memory::allocateHeapString(*aObj->str + *bObj->str);
         pushStack(CLoxLiteral(cObj));
     } else {
         throw LoxRuntimeError("Cannot apply operand '+' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
@@ -269,10 +236,60 @@ bool VM::isTruthy(const CLoxLiteral &a) {
     return true;
 }
 
+void VM::defineGlobal() {
+    std::string name = *readConstantAsStringObj()->str;
+    if (globals.find(name) != globals.end()){
+        throw LoxRuntimeError("Cannot redefine global variable '" + name + "' ", chunk->readLine(programCounter));
+    }
+    globals[name] = popStack();
+    popStack(); //pop variable identifier from stack
+}
+
+void VM::getGlobal() {
+    std::string name = *readConstantAsStringObj()->str;
+    if (globals.find(name) == globals.end()){
+        throw LoxRuntimeError("Undefined variable '" + name + "'", chunk->readLine(programCounter));
+    }
+    popStack(); //pop variable identifier from stack
+    pushStack(globals.at(name));
+}
+
+void VM::setGlobal() {
+    std::string name = *readConstantAsStringObj()->str;
+    if (globals.find(name) == globals.end()){
+        throw LoxRuntimeError("Undefined variable '" + name + "'", chunk->readLine(programCounter));
+    }
+    globals[name] = popStack();
+}
+
+void VM::getLocal() {
+    int localIndex = (int) chunk->readByte(programCounter);
+    programCounter++;
+    pushStack(stack.at(localIndex));
+}
+
+void VM::setLocal() {
+    int localIndex = (int) chunk->readByte(programCounter);
+    programCounter++;
+    stack.at(localIndex) = stack.back();
+}
+
 CLoxLiteral VM::readConstant() {
     int constantOffset = (int) chunk->readByte(programCounter);
     programCounter++;
     return chunk->readConstant(constantOffset);
+}
+
+StringObj *VM::readConstantAsStringObj() {
+    CLoxLiteral constant = readConstant();
+    assert(constant.isObj() && constant.getObj()->isString());
+    return dynamic_cast<StringObj*>(constant.getObj());
+}
+
+uint16_t VM::readTwoByteOffset() {
+    uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
+    programCounter += 2;
+    return offset;
 }
 
 void VM::pushStack(const CLoxLiteral& val) {
@@ -285,22 +302,10 @@ CLoxLiteral VM::popStack() {
     return val;
 }
 
-Obj* VM::allocateObject(const std::string &str) {
-    auto *obj = new StringObj(str);
-    Memory::heapObjects.push_back(obj);
-    return obj;
-}
-
-void VM::freeHeapObjects() {
-    for (Obj* obj : Memory::heapObjects){
-        delete obj;
-    }
-}
-
 void VM::printDebugInfo(int offset) {
     std::cout << "[DEBUG]";
     std::cout << "\tInstruction: ";
-    DebugUtils::printInstruction(offset, chunk.get());
+    DebugUtils::printInstruction(offset, chunk);
     std::cout << "\tStack: [";
     for (auto reverse_it = stack.rbegin(); reverse_it != stack.rend(); reverse_it++){
         std::cout << *reverse_it << ", ";

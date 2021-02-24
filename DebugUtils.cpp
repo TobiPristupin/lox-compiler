@@ -1,6 +1,7 @@
 #include <iostream>
 #include <bitset>
 #include "DebugUtils.h"
+#include "CLoxLiteral.h"
 
 void DebugUtils::printChunk(const Chunk *chunk, const std::string &name) {
     std::cout << "Chunk: " << name << "\n";

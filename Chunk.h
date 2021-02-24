@@ -4,7 +4,9 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include "CLoxLiteral.h"
+
+class CLoxLiteral;
+
 
 enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 8-bit integers
     OP_RETURN,

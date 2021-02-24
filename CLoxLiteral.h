@@ -5,13 +5,14 @@
 #include <string>
 #include <memory>
 #include "Token.h"
+#include "Chunk.h"
 
 enum class LiteralType {
     NIL, BOOL, NUMBER, OBJ
 };
 
 enum class ObjType {
-    STRING
+    STRING, FUNCTION
 };
 
 
@@ -20,7 +21,7 @@ public:
     ObjType type;
 
     explicit Obj(ObjType type);
-    virtual ~Obj() = default;
+    virtual ~Obj() = 0;
 
     bool isString() const;
 };
@@ -28,9 +29,18 @@ public:
 class StringObj : public Obj {
 public:
 
-    StringObj(std::string str);
+    explicit StringObj(std::unique_ptr<std::string> str);
 
-    std::string str;
+    std::unique_ptr<std::string> str;
+};
+
+class FunctionObj : public Obj {
+public:
+    FunctionObj(std::unique_ptr<std::string> name, std::unique_ptr<Chunk> chunk, int arity);
+
+    int arity;
+    std::unique_ptr<std::string> name;
+    std::unique_ptr<Chunk> chunk;
 };
 
 std::string literalTypeToString(LiteralType type);

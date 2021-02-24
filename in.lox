@@ -1,4 +1,4 @@
-
-for (var i=0; i < 12; i = i + 2){
+{
+var a = 10;
+print a;
 }
-print i;

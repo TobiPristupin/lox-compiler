@@ -8,7 +8,7 @@
 #include "Memory.h"
 
 //if this directive is enabled the compiler prints out every opcode after emitting them to the current chunk
-//#define DEBUG_COMPILER
+#define DEBUG_COMPILER
 
 ParseRule::ParseRule(ParseFunction parseAsPrefix, ParseFunction parseAsInfix, PrecedenceLevel precedenceLevel)
     : parseAsPrefix(parseAsPrefix), parseAsInfix(parseAsInfix), precedenceLevel(precedenceLevel) {}
@@ -17,6 +17,11 @@ ParseRule::ParseRule(ParseFunction parseAsPrefix, ParseFunction parseAsInfix, Pr
 LocalVariables::Variable::Variable(const Token &name, int depth) : name(name), depth(depth) {}
 
 Compiler::Compiler() {
+    functionType = FunctionType::SCRIPT;
+    function = dynamic_cast<FunctionObj*>(Memory::allocateHeapFunction("main", Chunk(), 0));
+
+    localVariables.locals.emplace_back(Token(TokenType::IDENTIFIER, "", -1), 0);
+
     registerParsingRules();
 }
 
@@ -75,10 +80,9 @@ void Compiler::registerParsingRules() {
 }
 
 
-std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool &successFlag) {
+FunctionObj* Compiler::compile(const std::vector<Token> &tokens, bool &successFlag) {
     successFlag = true;
     this->tokens = tokens;
-    chunk = std::make_shared<Chunk>();
     while (peek().type != TokenType::END_OF_FILE){
         declaration();
     }
@@ -89,7 +93,7 @@ std::shared_ptr<Chunk> Compiler::compile(const std::vector<Token> &tokens, bool 
 
     emitByte(OpCode::OP_RETURN);
     successFlag = !hadError;
-    return chunk;
+    return function;
 }
 
 void Compiler::declaration() {
@@ -344,8 +348,7 @@ void Compiler::addLocalVariable(const Token &name) {
 }
 
 std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
-    Obj* obj = new StringObj(identifier.lexeme);
-    Memory::heapObjects.push_back(obj);
+    Obj* obj = Memory::allocateHeapString(identifier.lexeme);
     return emitConstant(CLoxLiteral(obj));
 }
 
@@ -469,7 +472,7 @@ void Compiler::literal(bool canAssign) {
 }
 
 void Compiler::string(bool canAssign) {
-    Obj* obj = allocateHeapObj(previous().lexeme);
+    Obj* obj = Memory::allocateHeapString(previous().lexeme);
     CLoxLiteral str(obj);
     emitConstant(str);
 }
@@ -490,12 +493,6 @@ void Compiler::parseOr(bool canAssign) {
 
     parsePrecedence(PrecedenceLevel::OR);
     patchJump(endJump);
-}
-
-Obj *Compiler::allocateHeapObj(std::string str) {
-    StringObj* obj = new StringObj(std::move(str));
-    Memory::heapObjects.push_back(obj);
-    return obj;
 }
 
 int Compiler::emitJump(OpCode instruction) {
@@ -569,8 +566,8 @@ std::byte Compiler::emitConstant(const CLoxLiteral &constant) {
     return offsetAsByte;
 }
 
-std::shared_ptr<Chunk> Compiler::currentChunk() {
-    return chunk;
+Chunk* Compiler::currentChunk() {
+    return function->chunk.get();
 }
 
 
