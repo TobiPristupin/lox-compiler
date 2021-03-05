@@ -1,5 +1,4 @@
 #include <iostream>
-#include <bitset>
 #include <cstddef>
 #include <cassert>
 #include "Compiler.h"
@@ -8,7 +7,7 @@
 #include "Memory.h"
 
 //if this directive is enabled the compiler prints out every opcode after emitting them to the current chunk
-#define DEBUG_COMPILER
+//#define DEBUG_COMPILER
 
 ParseRule::ParseRule(ParseFunction parseAsPrefix, ParseFunction parseAsInfix, PrecedenceLevel precedenceLevel)
     : parseAsPrefix(parseAsPrefix), parseAsInfix(parseAsInfix), precedenceLevel(precedenceLevel) {}
@@ -18,23 +17,23 @@ LocalVariables::Variable::Variable(const Token &name, int depth) : name(name), d
 
 Compiler::Compiler() {
     functionType = FunctionType::SCRIPT;
-    function = dynamic_cast<FunctionObj*>(Memory::allocateHeapFunction("main", Chunk(), 0));
+    function = dynamic_cast<FunctionObj*>(Memory::allocateHeapFunction("", Chunk(), 0));
 
-    localVariables.locals.emplace_back(Token(TokenType::IDENTIFIER, "", -1), 0);
+    localVariables.locals.emplace_back(Token(TokenType::IDENTIFIER, "", 0), 0);
 
     registerParsingRules();
 }
 
 void Compiler::registerParsingRules() {
     parsingRules = {
-            {TokenType::LEFT_PAREN, ParseRule([this] (bool canAssign) {grouping(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::LEFT_PAREN, ParseRule([this] (bool canAssign) {grouping(canAssign);}, [this] (bool canAssign) {call(canAssign);}, PrecedenceLevel::CALL)},
             {TokenType::RIGHT_PAREN, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::LEFT_BRACE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RIGHT_BRACE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::LEFT_BRACKET, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::RIGHT_BRACKET, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::COMMA, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
-            {TokenType::DOT, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::DOT, ParseRule(std::nullopt, [this] (bool canAssign) {dot(canAssign);}, PrecedenceLevel::CALL)},
             {TokenType::MINUS, ParseRule([this] (bool canAssign) {unary(canAssign);}, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::TERM)},
             {TokenType::PLUS, ParseRule(std::nullopt, [this] (bool canAssign) {binary(canAssign);}, PrecedenceLevel::TERM)},
             {TokenType::SEMICOLON, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
@@ -138,6 +137,13 @@ void Compiler::statement() {
         whileStatement();
     } else if (match(TokenType::FOR)){
         forStatement();
+    } else if (match(TokenType::FUN)){
+        functionDeclaration();
+    } else if (match(TokenType::RETURN)){
+        emitByte(OpCode::OP_RETURN); //temporary
+        expect(TokenType::SEMICOLON, "Expected ';' after return");
+    } else if (match(TokenType::CLASS)){
+        classDeclaration();
     } else {
         expressionStatement();
     }
@@ -150,6 +156,29 @@ void Compiler::block() {
     }
 
     expect(TokenType::RIGHT_BRACE, "Expected '}' after block");
+}
+
+void Compiler::classDeclaration() {
+    Token name = expect(TokenType::IDENTIFIER, "Expected identifier after 'class'");
+    std::byte nameConstant = emitIdentifierConstant(name);
+    declareVariable();
+
+    emitByte(OpCode::OP_CLASS, nameConstant);
+    defineVariable(nameConstant);
+
+    expect(TokenType::LEFT_BRACE, "Expected '{' before class body");
+    expect(TokenType::RIGHT_BRACE, "Expected '}' after class body");
+}
+
+void Compiler::functionDeclaration() {
+    std::byte global = parseVariableName();
+    markVariableInitialized();
+    parseFunction(FunctionType::FUNCTION);
+    defineVariable(global);
+}
+
+void Compiler::parseFunction(FunctionType type) {
+    //TODO
 }
 
 void Compiler::ifStatement() {
@@ -254,6 +283,23 @@ void Compiler::expression() {
     parsePrecedence(PrecedenceLevel::ASSIGNMENT);
 }
 
+void Compiler::call(bool canAssign) {
+    emitByte(OpCode::OP_CALL);
+    expect(TokenType::RIGHT_PAREN, "Expected ')' after call");
+}
+
+void Compiler::dot(bool canAssign) {
+    Token name = expect(TokenType::IDENTIFIER, "Expected identifier after '.'");
+    std::byte offset = emitIdentifierConstant(name);
+
+    if (canAssign && match(TokenType::EQUAL)){
+        expression();
+        emitByte(OpCode::OP_SET_PROPERTY, offset);
+    } else {
+        emitByte(OpCode::OP_GET_PROPERTY, offset);
+    }
+}
+
 void Compiler::variable(bool canAssign) {
     namedVariable(canAssign, previous());
 }
@@ -354,14 +400,15 @@ std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
 
 void Compiler::defineVariable(std::byte identifierOffset) {
     if (localVariables.currentScopeDepth > 0){
-        markLocalVariableInitialized();
+        markVariableInitialized();
         return;
     }
 
     emitByte(OpCode::OP_DEFINE_GLOBAL, identifierOffset);
 }
 
-void Compiler::markLocalVariableInitialized() {
+void Compiler::markVariableInitialized() {
+    if (localVariables.currentScopeDepth == 0) return;
     localVariables.locals.back().depth = localVariables.currentScopeDepth;
 }
 

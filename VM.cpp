@@ -5,20 +5,23 @@
 #include "LoxError.h"
 #include "Memory.h"
 
+CallFrame::CallFrame(FunctionObj *function, int programCounter, int stackIndex) : function(function), programCounter(programCounter), stackIndex(stackIndex) {};
+
 //when this macro is enabled, the VM will print every instruction before executing it
 //#define DEBUG_VM
 
-
-ExecutionResult VM::execute(Chunk *chunk) {
-    programCounter = 0;
-    this->chunk = chunk;
+ExecutionResult VM::execute(FunctionObj *function) {
+    CLoxLiteral functionLiteral(function);
+    pushStack(functionLiteral);
+    callFrames.emplace_back(CallFrame(function, 0, 0));
+    currentFrame = callFrames.back();
 
     while (true){
         //keep track of the current offset before we modify it in case the DEBUG flag is on and we want to debug print info about
         //the last executed instruction.
-        int currentOffset = programCounter;
-        std::byte instruction = chunk->readByte(programCounter);
-        programCounter++;
+        int currentOffset = currentFrame.programCounter;
+        std::byte instruction = currentChunk()->readByte(currentOffset);
+        currentFrame.programCounter++;
 
         switch (static_cast<OpCode>(instruction)) {
             case OpCode::OP_RETURN:
@@ -87,20 +90,69 @@ ExecutionResult VM::execute(Chunk *chunk) {
             case OpCode::OP_JUMP_IF_FALSE: {
                 uint16_t offset = readTwoByteOffset();
                 if (!isTruthy(stack.back())){
-                    programCounter += offset;
+                    currentFrame.programCounter += offset;
                 }
 
                 break;
             }
             case OpCode::OP_JUMP: {
                 uint16_t offset = readTwoByteOffset();
-                programCounter += offset;
+                currentFrame.programCounter += offset;
                 break;
             }
             case OpCode::OP_LOOP: {
                 uint16_t offset = readTwoByteOffset();
-                programCounter -= offset + 1;
+                currentFrame.programCounter -= offset + 1;
                 break;
+            }
+
+            case OpCode::OP_CLASS: {
+                pushStack(CLoxLiteral(Memory::allocateHeapClass(readConstantAsStringObj())));
+                break;
+            }
+            case OpCode::OP_CALL: {
+
+                CLoxLiteral obj = popStack();
+                assert(obj.isObj() && obj.getObj()->isClass());
+                auto *classObj = dynamic_cast<ClassObj*>(obj.getObj());
+                pushStack(CLoxLiteral(Memory::allocateHeapInstance(classObj)));
+                break;
+            }
+            case OpCode::OP_SET_PROPERTY: {
+                CLoxLiteral value = popStack();
+                StringObj *strObj = readConstantAsStringObj();
+                popStack();
+
+                CLoxLiteral literal = popStack();
+
+                if (!literal.isObj() || !literal.getObj()->isInstance()){
+                    throw LoxRuntimeError("Cannot access property. Only instances have fields.");
+                }
+
+                auto *instanceObj = dynamic_cast<InstanceObj*>(literal.getObj());
+                instanceObj->fields[strObj->str] = value;
+                pushStack(value);
+                break;
+            }
+            case OpCode::OP_GET_PROPERTY: {
+                StringObj *strObj = readConstantAsStringObj();
+                popStack();
+                CLoxLiteral literal = popStack();
+
+                if (!literal.isObj() || !literal.getObj()->isInstance()){
+                    throw LoxRuntimeError("Cannot access property. Only instances have fields.");
+                }
+
+                auto *instanceObj = dynamic_cast<InstanceObj*>(literal.getObj());
+
+                if (instanceObj->fields.find(strObj->str) != instanceObj->fields.end()){
+                    pushStack(instanceObj->fields.at(strObj->str));
+                } else {
+                    throw LoxRuntimeError("Undefined property " + strObj->str, readChunkLine(currentFrame.programCounter));
+                }
+
+                break;
+
             }
 
         }
@@ -123,10 +175,10 @@ void VM::add() {
     } else if (a.isObj() && b.isObj() && a.getObj()->isString() && b.getObj()->isString()){
         auto *aObj = dynamic_cast<StringObj*>(a.getObj());
         auto *bObj = dynamic_cast<StringObj*>(b.getObj());
-        Obj* cObj = Memory::allocateHeapString(*aObj->str + *bObj->str);
+        Obj* cObj = Memory::allocateHeapString(aObj->str + bObj->str);
         pushStack(CLoxLiteral(cObj));
     } else {
-        throw LoxRuntimeError("Cannot apply operand '+' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot apply operand '+' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
     }
 }
 
@@ -136,7 +188,7 @@ void VM::subtract() {
     if (a.isNumber() && b.isNumber()){
         pushStack(CLoxLiteral(a.getNumber() - b.getNumber()));
     } else {
-        throw LoxRuntimeError("Cannot apply operand '-' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot apply operand '-' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
     }
 }
 
@@ -146,7 +198,7 @@ void VM::multiply() {
     if (a.isNumber() && b.isNumber()){
         pushStack(CLoxLiteral(a.getNumber() * b.getNumber()));
     } else {
-        throw LoxRuntimeError("Cannot apply operand '*' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot apply operand '*' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
     }
 }
 
@@ -155,11 +207,11 @@ void VM::divide() {
     CLoxLiteral a = popStack();
     if (a.isNumber() && b.isNumber()){
         if (b.getNumber() == 0.0){
-            throw LoxRuntimeError("Cannot divide by 0", chunk->readLine(programCounter));
+            throw LoxRuntimeError("Cannot divide by 0", readChunkLine(currentFrame.programCounter));
         }
         pushStack(CLoxLiteral(a.getNumber() / b.getNumber()));
     } else {
-        throw LoxRuntimeError("Cannot apply operand '*' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot apply operand '*' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
     }
 }
 
@@ -179,9 +231,9 @@ void VM::equal() {
         pushStack(CLoxLiteral(a.getBoolean() == b.getBoolean()));
     } else if (a.isNil() && b.isNil()){
          pushStack(CLoxLiteral(true));
+    } else {
+        throw std::runtime_error("This should be unreachable. Missing case");
     }
-
-    throw std::runtime_error("This should be unreachable. Missing case");
 }
 
 void VM::greater() {
@@ -195,7 +247,7 @@ void VM::greater() {
              pushStack(CLoxLiteral(dynamic_cast<StringObj*>(a.getObj()) > dynamic_cast<StringObj*>(b.getObj())));
         }
     } else {
-        throw LoxRuntimeError("Cannot apply operator '>' to operands of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot apply operator '>' to operands of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
     }
 }
 
@@ -210,7 +262,7 @@ void VM::less() {
             pushStack(CLoxLiteral(dynamic_cast<StringObj*>(a.getObj()) < dynamic_cast<StringObj*>(b.getObj())));
         }
     } else {
-        throw LoxRuntimeError("Cannot apply operator '>' to operands of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot apply operator '>' to operands of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
     }
 }
 
@@ -237,47 +289,44 @@ bool VM::isTruthy(const CLoxLiteral &a) {
 }
 
 void VM::defineGlobal() {
-    std::string name = *readConstantAsStringObj()->str;
+    std::string name = readConstantAsStringObj()->str;
     if (globals.find(name) != globals.end()){
-        throw LoxRuntimeError("Cannot redefine global variable '" + name + "' ", chunk->readLine(programCounter));
+        throw LoxRuntimeError("Cannot redefine global variable '" + name + "' ", currentFrame.function->chunk->readLine(currentFrame.programCounter));
     }
     globals[name] = popStack();
     popStack(); //pop variable identifier from stack
 }
 
 void VM::getGlobal() {
-    std::string name = *readConstantAsStringObj()->str;
+    std::string name = readConstantAsStringObj()->str;
     if (globals.find(name) == globals.end()){
-        throw LoxRuntimeError("Undefined variable '" + name + "'", chunk->readLine(programCounter));
+        throw LoxRuntimeError("Undefined variable '" + name + "'", readChunkLine(currentFrame.programCounter));
     }
     popStack(); //pop variable identifier from stack
     pushStack(globals.at(name));
 }
 
 void VM::setGlobal() {
-    std::string name = *readConstantAsStringObj()->str;
+    std::string name = readConstantAsStringObj()->str;
     if (globals.find(name) == globals.end()){
-        throw LoxRuntimeError("Undefined variable '" + name + "'", chunk->readLine(programCounter));
+        throw LoxRuntimeError("Undefined variable '" + name + "'", readChunkLine(currentFrame.programCounter));
     }
     globals[name] = popStack();
 }
 
 void VM::getLocal() {
-    int localIndex = (int) chunk->readByte(programCounter);
-    programCounter++;
+    int localIndex = readOneByteOffset();
     pushStack(stack.at(localIndex));
 }
 
 void VM::setLocal() {
-    int localIndex = (int) chunk->readByte(programCounter);
-    programCounter++;
+    uint8_t localIndex = readOneByteOffset();
     stack.at(localIndex) = stack.back();
 }
 
 CLoxLiteral VM::readConstant() {
-    int constantOffset = (int) chunk->readByte(programCounter);
-    programCounter++;
-    return chunk->readConstant(constantOffset);
+    uint8_t constantOffset = readOneByteOffset();
+    return currentChunk()->readConstant(constantOffset);
 }
 
 StringObj *VM::readConstantAsStringObj() {
@@ -286,9 +335,21 @@ StringObj *VM::readConstantAsStringObj() {
     return dynamic_cast<StringObj*>(constant.getObj());
 }
 
+ClassObj *VM::readConstantAsClassObj() {
+    CLoxLiteral constant = readConstant();
+    assert(constant.isObj() && constant.getObj()->isClass());
+    return dynamic_cast<ClassObj*>(constant.getObj());
+}
+
 uint16_t VM::readTwoByteOffset() {
-    uint16_t offset = ((uint16_t) chunk->readByte(programCounter) >> 8u) | (uint16_t) chunk->readByte(programCounter + 1);
-    programCounter += 2;
+    uint16_t offset = ((uint16_t) currentChunk()->readByte(currentFrame.programCounter) >> 8u) | (uint16_t) currentChunk()->readByte(currentFrame.programCounter + 1);
+    currentFrame.programCounter += 2;
+    return offset;
+}
+
+uint8_t VM::readOneByteOffset() {
+    uint8_t offset = (uint8_t) currentChunk()->readByte(currentFrame.programCounter);
+    currentFrame.programCounter++;
     return offset;
 }
 
@@ -302,10 +363,18 @@ CLoxLiteral VM::popStack() {
     return val;
 }
 
+Chunk *VM::currentChunk() {
+    return currentFrame.function->chunk.get();
+}
+
+int VM::readChunkLine(int offset) {
+    return currentChunk()->readLine(offset);
+}
+
 void VM::printDebugInfo(int offset) {
     std::cout << "[DEBUG]";
     std::cout << "\tInstruction: ";
-    DebugUtils::printInstruction(offset, chunk);
+    DebugUtils::printInstruction(offset, currentChunk());
     std::cout << "\tStack: [";
     for (auto reverse_it = stack.rbegin(); reverse_it != stack.rend(); reverse_it++){
         std::cout << *reverse_it << ", ";

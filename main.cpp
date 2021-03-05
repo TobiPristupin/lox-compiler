@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include "Chunk.h"
 #include "VM.h"
 #include "FileReader.h"
@@ -6,6 +7,8 @@
 #include "Scanner.h"
 #include "Compiler.h"
 #include "DebugUtils.h"
+
+#define LOG_HEAP
 
 
 void displayCLoxUsage();
@@ -15,6 +18,13 @@ ExecutionResult runCode(const std::string &code);
 
 
 int main(int argc, char *argv[]) {
+#ifdef LOG_HEAP
+    std::ofstream out("/home/pristu/Documents/cpp/clox/heap_log.txt");
+    auto old_rdbuf = std::clog.rdbuf();
+    std::clog.rdbuf(out.rdbuf());
+    std::chrono::steady_clock::time_point begin_time = std::chrono::steady_clock::now();
+#endif
+
     ExecutionResult result;
 
     if (argc > 2) {
@@ -26,14 +36,28 @@ int main(int argc, char *argv[]) {
         result = runRepl();
     }
 
+    int exitCode;
+
     switch (result) {
         case ExecutionResult::OK:
-            return 0;
+            exitCode = 0;
+            break;
         case ExecutionResult::COMPILE_ERROR:
-            return 65;
+            exitCode = 65;
+            break;
         case ExecutionResult::RUNTIME_ERROR:
-            return 70;
+            exitCode = 70;
+            break;
     }
+
+    std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
+    std::clog << std::chrono::duration_cast<std::chrono::microseconds>(end_time - begin_time).count() << std::endl;
+
+#ifdef LOG_HEAP
+    std::clog.rdbuf(old_rdbuf);
+#endif
+
+    return exitCode;
 }
 
 ExecutionResult runScript(const std::string &filename){
@@ -96,7 +120,7 @@ ExecutionResult runCode(const std::string &code){
     VM vm;
     ExecutionResult result;
     try {
-        result = vm.execute(function->chunk.get());
+        result = vm.execute(function);
     } catch (const LoxRuntimeError &error) {
         std::cout << error.what() << "\n";
         return ExecutionResult::RUNTIME_ERROR;

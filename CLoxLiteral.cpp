@@ -12,12 +12,27 @@ bool Obj::isString() const {
     return type == ObjType::STRING;
 }
 
-StringObj::StringObj(std::unique_ptr<std::string> str) : Obj(ObjType::STRING), str(std::move(str)) {}
+bool Obj::isClass() const {
+    return type == ObjType::CLASS;
+}
+
+bool Obj::isFunction() const {
+    return type == ObjType::FUNCTION;
+}
+
+bool Obj::isInstance() const {
+    return type == ObjType::INSTANCE;
+}
+
+StringObj::StringObj(std::string str) : Obj(ObjType::STRING), str(std::move(str)) {}
 
 
 FunctionObj::FunctionObj(std::unique_ptr<std::string> name, std::unique_ptr<Chunk> chunk, int arity) :
     Obj(ObjType::FUNCTION), name(std::move(name)), chunk(std::move(chunk)), arity(arity) {}
 
+ClassObj::ClassObj(StringObj *name) : Obj(ObjType::CLASS), name(name) {}
+
+InstanceObj::InstanceObj(ClassObj *klass) : Obj(ObjType::INSTANCE), klass(klass) {}
 
 CLoxLiteral::CLoxLiteral(double number) : type(LiteralType::NUMBER), number(number) {}
 
@@ -89,7 +104,7 @@ std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
         {
             switch (object.getObj()->type) {
                 case ObjType::STRING: {
-                    std::string s = *dynamic_cast<StringObj *>(object.getObj())->str;
+                    std::string s = dynamic_cast<StringObj *>(object.getObj())->str;
                     utils::replaceAll(s, "\\n", "\n");
                     utils::replaceAll(s, "\\t", "\t");
                     os << s;
@@ -97,6 +112,13 @@ std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
                 }
                 case ObjType::FUNCTION:
                     os << std::string("<function ") << *dynamic_cast<FunctionObj*>(object.getObj())->name << std::string(">");
+                    return os;
+                case ObjType::CLASS:
+                    os << std::string("<class ") << dynamic_cast<ClassObj*>(object.getObj())->name->str << std::string(">");
+                    return os;
+                case ObjType::INSTANCE:
+                    os << std::string("<instance of ") << dynamic_cast<InstanceObj*>(object.getObj())->klass->name->str << std::string(">");
+                    return os;
             }
         }
         default:

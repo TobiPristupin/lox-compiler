@@ -103,6 +103,18 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_LOOP:
             jumpInstruction("OP_LOOP", -1, offset, chunk);
             return offset + 3;
+        case OpCode::OP_CLASS:
+            std::cout << "OP_CLASS\n";
+            return offset + 1;
+        case OpCode::OP_CALL:
+            std::cout << "OP_CALL\n";
+            return offset + 1;
+        case OpCode::OP_GET_PROPERTY:
+            constantInstruction("OP_GET_PROPERTY", offset, chunk);
+            return offset + 2;
+        case OpCode::OP_SET_PROPERTY:
+            constantInstruction("OP_SET_PROPERTY", offset, chunk);
+            return offset + 2;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;

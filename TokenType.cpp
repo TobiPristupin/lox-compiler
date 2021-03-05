@@ -100,6 +100,8 @@ std::string tokenTypeToString(TokenType type) {
             return "LEFT_BRACKET";
         case TokenType::RIGHT_BRACKET:
             return "RIGHT_BRACKET";
+        case TokenType::NEW:
+            return "NEW";
     }
 
     return "unreachable";

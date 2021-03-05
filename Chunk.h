@@ -32,7 +32,11 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_SET_LOCAL,
     OP_JUMP_IF_FALSE,
     OP_JUMP,
-    OP_LOOP
+    OP_LOOP,
+    OP_CLASS,
+    OP_CALL,
+    OP_GET_PROPERTY,
+    OP_SET_PROPERTY
 };
 
 class Chunk {

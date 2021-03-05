@@ -14,19 +14,33 @@ enum class ExecutionResult {
     RUNTIME_ERROR
 };
 
+class CallFrame {
+public:
+    CallFrame() = default;
+    CallFrame(FunctionObj *function, int programCounter, int stackIndex);
+
+    FunctionObj *function = nullptr;
+    int programCounter = 0;
+    int stackIndex = 0;
+};
+
 class VM {
 public:
-    ExecutionResult execute(Chunk *chunk);
+
+    ExecutionResult execute(FunctionObj *function);
 
 
 private:
     std::vector<CLoxLiteral> stack;
-    Chunk *chunk;
     std::unordered_map<std::string, CLoxLiteral> globals;
-    int programCounter = 0; //holds the index of the next instruction to be executed
+    std::vector<CallFrame> callFrames;
+    CallFrame currentFrame;
+
+    Chunk *currentChunk();
 
     CLoxLiteral readConstant();
     StringObj* readConstantAsStringObj();
+    ClassObj* readConstantAsClassObj();
     void pushStack(const CLoxLiteral& val);
     CLoxLiteral popStack();
 
@@ -47,6 +61,8 @@ private:
     void getLocal();
 
     uint16_t readTwoByteOffset();
+    uint8_t readOneByteOffset();
+    int readChunkLine(int offset);
 
 
 

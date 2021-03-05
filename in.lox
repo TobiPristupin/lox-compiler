@@ -1,4 +1,8 @@
-{
-var a = 10;
-print a;
-}
+class Object {}
+
+var a = Object();
+var b = Object();
+
+a.hello = b;
+
+print a.hello;

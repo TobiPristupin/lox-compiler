@@ -91,6 +91,8 @@ private:
     void ifStatement();
     void whileStatement();
     void forStatement();
+    void functionDeclaration();
+    void classDeclaration();
     void expression();
 
     void number(bool canAssign);
@@ -102,6 +104,10 @@ private:
     void variable(bool canAssign);
     void parseAnd(bool canAssign);
     void parseOr(bool canAssign);
+    void call(bool canAssign);
+    void dot(bool canAssign);
+
+    void parseFunction(FunctionType type);
 
     void block();
 
@@ -115,7 +121,7 @@ private:
     std::byte emitIdentifierConstant(const Token &identifier);
     void defineVariable(std::byte identifierOffset);
     std::optional<std::byte> resolveLocalVariable(const Token &name);
-    void markLocalVariableInitialized();
+    void markVariableInitialized();
 
     void emitByte(OpCode opCode);
     void emitByte(OpCode opCode1, OpCode opcode2);
