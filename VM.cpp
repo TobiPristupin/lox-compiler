@@ -107,7 +107,8 @@ ExecutionResult VM::execute(FunctionObj *function) {
             }
 
             case OpCode::OP_CLASS: {
-                pushStack(CLoxLiteral(Memory::allocateHeapClass(readConstantAsStringObj())));
+                runGCIfNecessary();
+                pushStack(CLoxLiteral(Memory::allocateHeapClass(readConstantAsStringObj(), this)));
                 break;
             }
             case OpCode::OP_CALL: {
@@ -115,7 +116,8 @@ ExecutionResult VM::execute(FunctionObj *function) {
                 CLoxLiteral obj = popStack();
                 assert(obj.isObj() && obj.getObj()->isClass());
                 auto *classObj = dynamic_cast<ClassObj*>(obj.getObj());
-                pushStack(CLoxLiteral(Memory::allocateHeapInstance(classObj)));
+                runGCIfNecessary();
+                pushStack(CLoxLiteral(Memory::allocateHeapInstance(classObj, this)));
                 break;
             }
             case OpCode::OP_SET_PROPERTY: {
@@ -175,7 +177,8 @@ void VM::add() {
     } else if (a.isObj() && b.isObj() && a.getObj()->isString() && b.getObj()->isString()){
         auto *aObj = dynamic_cast<StringObj*>(a.getObj());
         auto *bObj = dynamic_cast<StringObj*>(b.getObj());
-        Obj* cObj = Memory::allocateHeapString(aObj->str + bObj->str);
+        runGCIfNecessary();
+        Obj* cObj = Memory::allocateHeapString(aObj->str + bObj->str, this);
         pushStack(CLoxLiteral(cObj));
     } else {
         throw LoxRuntimeError("Cannot apply operand '+' to objects of type " + literalTypeToString(a.type) + " and " + literalTypeToString(b.type), readChunkLine(currentFrame.programCounter));
@@ -364,11 +367,17 @@ CLoxLiteral VM::popStack() {
 }
 
 Chunk *VM::currentChunk() {
-    return currentFrame.function->chunk.get();
+    return currentFrame.function->chunk;
 }
 
 int VM::readChunkLine(int offset) {
     return currentChunk()->readLine(offset);
+}
+
+void VM::runGCIfNecessary() {
+    if (Memory::bytesAllocated > Memory::nextGCByteThreshold){
+        Memory::collectGarbage(this);
+    }
 }
 
 void VM::printDebugInfo(int offset) {

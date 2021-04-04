@@ -17,7 +17,8 @@ LocalVariables::Variable::Variable(const Token &name, int depth) : name(name), d
 
 Compiler::Compiler() {
     functionType = FunctionType::SCRIPT;
-    function = dynamic_cast<FunctionObj*>(Memory::allocateHeapFunction("", Chunk(), 0));
+    StringObj *name = dynamic_cast<StringObj*>(Memory::allocateHeapString("mainCompilerFunction"));
+    function = dynamic_cast<FunctionObj*>(Memory::allocateHeapFunction(name, new Chunk(), 0));
 
     localVariables.locals.emplace_back(Token(TokenType::IDENTIFIER, "", 0), 0);
 
@@ -614,7 +615,7 @@ std::byte Compiler::emitConstant(const CLoxLiteral &constant) {
 }
 
 Chunk* Compiler::currentChunk() {
-    return function->chunk.get();
+    return function->chunk;
 }
 
 

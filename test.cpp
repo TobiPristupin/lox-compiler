@@ -1,6 +1,22 @@
 #include <chrono>
 #include <iostream>
+#include <vector>
+
+class Outer {
+public:
+
+    class Inner {
+    public:
+         static void innerFunc(){
+            std::cout << stack.back() << "\n";
+        }
+    };
+
+
+private:
+    static std::vector<std::string> stack;
+};
 
 int main(){
-    std::cout << std::chrono::system_clock::now().time_since_epoch().count() << "\n";
+    Outer::Inner::innerFunc();
 }

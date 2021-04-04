@@ -54,6 +54,7 @@ enum class ObjType {
 class Obj {
 public:
     ObjType type;
+    bool marked = false;
 
     explicit Obj(ObjType type);
     virtual ~Obj() = 0;
@@ -74,11 +75,12 @@ public:
 
 class FunctionObj : public Obj {
 public:
-    FunctionObj(std::unique_ptr<std::string> name, std::unique_ptr<Chunk> chunk, int arity);
+    FunctionObj(StringObj *name, Chunk *chunk, int arity);
+    ~FunctionObj();
 
     int arity;
-    std::unique_ptr<std::string> name;
-    std::unique_ptr<Chunk> chunk;
+    StringObj *name;
+    Chunk *chunk;
 };
 
 class ClassObj : public Obj {

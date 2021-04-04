@@ -64,11 +64,11 @@ private:
     uint8_t readOneByteOffset();
     int readChunkLine(int offset);
 
-
+    void runGCIfNecessary();
 
     void printDebugInfo(int offset);
 
-
+    friend class Memory; //Memory.h defined in this project, not the standard <memory> module
 };
 
 

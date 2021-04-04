@@ -1,8 +1,6 @@
-class Object {}
-
-var a = Object();
-var b = Object();
-
-a.hello = b;
-
-print a.hello;
+var a = "hey";
+var b = "hello";
+var c = a + b;
+c = "puto" + "caca";
+c = "pene" + "dios";
+c = "a" + "a";

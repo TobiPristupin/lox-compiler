@@ -27,8 +27,12 @@ bool Obj::isInstance() const {
 StringObj::StringObj(std::string str) : Obj(ObjType::STRING), str(std::move(str)) {}
 
 
-FunctionObj::FunctionObj(std::unique_ptr<std::string> name, std::unique_ptr<Chunk> chunk, int arity) :
-    Obj(ObjType::FUNCTION), name(std::move(name)), chunk(std::move(chunk)), arity(arity) {}
+FunctionObj::FunctionObj(StringObj *name, Chunk *chunk, int arity) :
+    Obj(ObjType::FUNCTION), name(name), chunk(chunk), arity(arity) {}
+
+FunctionObj::~FunctionObj() {
+    delete chunk;
+}
 
 ClassObj::ClassObj(StringObj *name) : Obj(ObjType::CLASS), name(name) {}
 
@@ -111,7 +115,7 @@ std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
                     return os;
                 }
                 case ObjType::FUNCTION:
-                    os << std::string("<function ") << *dynamic_cast<FunctionObj*>(object.getObj())->name << std::string(">");
+                    os << std::string("<function ") << dynamic_cast<FunctionObj*>(object.getObj())->name->str << std::string(">");
                     return os;
                 case ObjType::CLASS:
                     os << std::string("<class ") << dynamic_cast<ClassObj*>(object.getObj())->name->str << std::string(">");
