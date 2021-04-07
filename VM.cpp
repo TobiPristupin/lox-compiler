@@ -157,6 +157,13 @@ ExecutionResult VM::execute(FunctionObj *function) {
 
             }
 
+            case OpCode::OP_ALLOCATE: {
+                CLoxLiteral kilobytes = popStack();
+                assert(kilobytes.isNumber());
+                runGCIfNecessary();
+                Obj *obj = Memory::allocateAllocationObject(kilobytes.getNumber());
+                pushStack(CLoxLiteral(obj));
+            }
         }
 
 

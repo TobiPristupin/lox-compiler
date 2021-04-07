@@ -24,6 +24,10 @@ bool Obj::isInstance() const {
     return type == ObjType::INSTANCE;
 }
 
+bool Obj::isAllocation() const {
+    return type == ObjType::ALLOCATION;
+}
+
 StringObj::StringObj(std::string str) : Obj(ObjType::STRING), str(std::move(str)) {}
 
 
@@ -37,6 +41,12 @@ FunctionObj::~FunctionObj() {
 ClassObj::ClassObj(StringObj *name) : Obj(ObjType::CLASS), name(name) {}
 
 InstanceObj::InstanceObj(ClassObj *klass) : Obj(ObjType::INSTANCE), klass(klass) {}
+
+AllocationObj::AllocationObj(size_t kilobytes, char* memoryBlock) : Obj(ObjType::ALLOCATION), kilobytes(kilobytes), memoryBlock(memoryBlock) {}
+
+AllocationObj::~AllocationObj() {
+    delete[] memoryBlock;
+}
 
 CLoxLiteral::CLoxLiteral(double number) : type(LiteralType::NUMBER), number(number) {}
 
@@ -122,6 +132,9 @@ std::ostream &operator<<(std::ostream &os, const CLoxLiteral &object) {
                     return os;
                 case ObjType::INSTANCE:
                     os << std::string("<instance of ") << dynamic_cast<InstanceObj*>(object.getObj())->klass->name->str << std::string(">");
+                    return os;
+                case ObjType::ALLOCATION:
+                    os << std::string("<allocation of size ") << std::to_string(dynamic_cast<AllocationObj*>(object.getObj())->kilobytes) << std::string(">");
                     return os;
             }
         }

@@ -19,6 +19,7 @@ public:
     static Obj* allocateHeapClass(StringObj *name, VM *vm = nullptr);
     static Obj* allocateHeapInstance(ClassObj *klass, VM *vm = nullptr);
     static Obj* allocateHeapFunction(StringObj *name, Chunk *chunk, int arity, VM *vm = nullptr);
+    static Obj* allocateAllocationObject(size_t kilobytes);
     static void freeAllHeapObjects();
     static void collectGarbage(VM *vm = nullptr);
     static void markRoots(VM *vm = nullptr);
@@ -33,6 +34,7 @@ public:
 private:
     static auto epochTime();
     static void logDeallocation(const Obj *obj);
+    static void logAllocation(const Obj *obj);
 
 };
 

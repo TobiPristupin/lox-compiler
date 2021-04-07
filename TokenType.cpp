@@ -102,6 +102,8 @@ std::string tokenTypeToString(TokenType type) {
             return "RIGHT_BRACKET";
         case TokenType::NEW:
             return "NEW";
+        case TokenType::ALLOCATE:
+            return "ALLOCATE";
     }
 
     return "unreachable";

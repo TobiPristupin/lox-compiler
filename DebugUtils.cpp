@@ -115,9 +115,13 @@ int DebugUtils::printInstruction(int offset, const Chunk *chunk) {
         case OpCode::OP_SET_PROPERTY:
             constantInstruction("OP_SET_PROPERTY", offset, chunk);
             return offset + 2;
+        case OpCode::OP_ALLOCATE:
+            std::cout << "OP_ALLOCATE\n";
+            return offset + 1;
         default:
             std::cout << "UNKNOWN\n";
             return offset + 1;
+
     }
 
 }

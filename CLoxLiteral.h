@@ -47,7 +47,7 @@ private:
 
 
 enum class ObjType {
-    STRING, FUNCTION, CLASS, INSTANCE
+    STRING, FUNCTION, CLASS, INSTANCE, ALLOCATION
 };
 
 
@@ -63,6 +63,7 @@ public:
     bool isClass() const;
     bool isFunction() const;
     bool isInstance() const;
+    bool isAllocation() const;
 };
 
 class StringObj : public Obj {
@@ -76,7 +77,7 @@ public:
 class FunctionObj : public Obj {
 public:
     FunctionObj(StringObj *name, Chunk *chunk, int arity);
-    ~FunctionObj();
+    ~FunctionObj() override;
 
     int arity;
     StringObj *name;
@@ -96,6 +97,15 @@ public:
 
     ClassObj *klass;
     std::unordered_map<std::string, CLoxLiteral> fields;
+};
+
+class AllocationObj : public Obj {
+public:
+    explicit AllocationObj(size_t kilobytes, char* memoryBlock);
+    ~AllocationObj() override;
+
+    size_t kilobytes;
+    char* memoryBlock;
 };
 
 

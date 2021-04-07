@@ -1,12 +1,14 @@
 #include <iostream>
 #include <chrono>
-#include "Chunk.h"
+#include <thread>
+#include <functional>
 #include "VM.h"
 #include "FileReader.h"
 #include "LoxError.h"
 #include "Scanner.h"
 #include "Compiler.h"
 #include "DebugUtils.h"
+#include "Memory.h"
 
 #define LOG_HEAP
 
@@ -16,13 +18,16 @@ ExecutionResult runRepl();
 ExecutionResult runScript(const std::string& filename);
 ExecutionResult runCode(const std::string &code);
 
+auto getEpochTimeMillis(){
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
 
 int main(int argc, char *argv[]) {
 #ifdef LOG_HEAP
     std::ofstream out("/home/pristu/Documents/cpp/clox/heap_log.txt");
     auto old_rdbuf = std::clog.rdbuf();
     std::clog.rdbuf(out.rdbuf());
-    std::chrono::steady_clock::time_point begin_time = std::chrono::steady_clock::now();
+    std::clog << getEpochTimeMillis() << "\n";
 #endif
 
     ExecutionResult result;
@@ -50,8 +55,7 @@ int main(int argc, char *argv[]) {
             break;
     }
 
-    std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
-    std::clog << std::chrono::duration_cast<std::chrono::microseconds>(end_time - begin_time).count() << std::endl;
+    std::clog << getEpochTimeMillis() << "\n";
 
 #ifdef LOG_HEAP
     std::clog.rdbuf(old_rdbuf);
@@ -132,3 +136,5 @@ ExecutionResult runCode(const std::string &code){
 void displayCLoxUsage(){
     std::cout << "Usage: clox [script]\n";
 }
+
+

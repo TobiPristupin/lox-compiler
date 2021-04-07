@@ -1,6 +1,12 @@
-var a = "hey";
-var b = "hello";
-var c = a + b;
-c = "puto" + "caca";
-c = "pene" + "dios";
-c = "a" + "a";
+class Node {}
+
+var a = Node();
+var b = Node();
+var c = Node();
+a.next = b;
+b.next = c;
+c.next = a;
+
+var a = "aa" + "bb"
+
+print a.next.next.next.next;

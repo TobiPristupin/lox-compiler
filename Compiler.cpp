@@ -75,6 +75,7 @@ void Compiler::registerParsingRules() {
             {TokenType::BREAK, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::CONTINUE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::LAMBDA, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
+            {TokenType::ALLOCATE, ParseRule([this] (bool canAssign) {allocate(canAssign);}, std::nullopt, PrecedenceLevel::NONE)},
             {TokenType::END_OF_FILE, ParseRule(std::nullopt, std::nullopt, PrecedenceLevel::NONE)},
     };
 }
@@ -141,7 +142,7 @@ void Compiler::statement() {
     } else if (match(TokenType::FUN)){
         functionDeclaration();
     } else if (match(TokenType::RETURN)){
-        emitByte(OpCode::OP_RETURN); //temporary
+        emitByte(OpCode::OP_RETURN);
         expect(TokenType::SEMICOLON, "Expected ';' after return");
     } else if (match(TokenType::CLASS)){
         classDeclaration();
@@ -457,15 +458,20 @@ void Compiler::unary(bool canAssign) {
 
     switch (type) {
         case TokenType::MINUS:
-            emitByte(static_cast<std::byte>(OpCode::OP_NEGATE));
+            emitByte(OpCode::OP_NEGATE);
             break;
         case TokenType::BANG:
-            emitByte(static_cast<std::byte>(OpCode::OP_NOT));
+            emitByte(OpCode::OP_NOT);
             break;
         default:
             return; //unreachable
     }
 
+}
+
+void Compiler::allocate(bool canAssign) {
+    parsePrecedence(PrecedenceLevel::FACTOR);
+    emitByte(OpCode::OP_ALLOCATE);
 }
 
 void Compiler::binary(bool canAssign) {

@@ -3,7 +3,7 @@
 #include "Memory.h"
 
 //#define DEBUG_STRESS_GC //Run the GC after every allocation
-#define DEBUG_LOG_GC
+//#define DEBUG_LOG_GC
 //Reset every object to white after the marking phase so every GC cycle starts clean. Has no effect on a stop the world
 //collector because marked objects will be freed, but can be useful for debugging.
 //#define UNMARK_OBJECTS
@@ -15,7 +15,7 @@ size_t Memory::heapGrowFactor = 1;
 size_t Memory::bytesAllocated = 0;
 
 auto Memory::epochTime() {
-    return std::chrono::system_clock::now().time_since_epoch().count();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 Obj *Memory::allocateHeapFunction(StringObj *name, Chunk *chunk, int arity, VM *vm) {
@@ -25,7 +25,7 @@ Obj *Memory::allocateHeapFunction(StringObj *name, Chunk *chunk, int arity, VM *
 
     auto *obj = new FunctionObj(name, chunk, arity);
     bytesAllocated += calculateObjectSize(obj);
-    std::clog << "Allocated function " << obj->name->str << " " << calculateObjectSize(obj)  << " " <<  epochTime() << "\n";
+    logAllocation(obj);
 
     heapObjects.push_back(obj);
     return obj;
@@ -39,7 +39,7 @@ Obj *Memory::allocateHeapString(std::string str, VM *vm) {
 
     auto *obj = new StringObj(std::move(str));
     bytesAllocated += calculateObjectSize(obj);
-    std::clog << "Allocated string " << obj->str << " " <<  calculateObjectSize(obj) << " " << obj << " " << epochTime() << "\n";
+    logAllocation(obj);
 
 #ifdef DEBUG_LOG_GC
     std::cout << "[DEBUG] Allocated string " <<  calculateObjectSize(obj) << " " << epochTime() << "\n";
@@ -56,7 +56,7 @@ Obj *Memory::allocateHeapClass(StringObj *name, VM *vm) {
 
     auto *obj = new ClassObj(name);
     bytesAllocated += calculateObjectSize(obj);
-    std::clog << "Allocated class " << obj->name->str << " " <<   calculateObjectSize(obj)  << " " << obj << " " << epochTime() << "\n";
+    logAllocation(obj);
 
 #ifdef DEBUG_LOG_GC
     std::cout << "[DEBUG] Allocated class " <<  calculateObjectSize(obj)  << " " << epochTime() << "\n";
@@ -73,7 +73,7 @@ Obj *Memory::allocateHeapInstance(ClassObj *klass, VM *vm) {
 
     auto *obj = new InstanceObj(klass);
     bytesAllocated += calculateObjectSize(obj);
-    std::clog << "Allocated instance " << obj->klass->name << " " <<  calculateObjectSize(obj) << " " << obj << " " << epochTime() << "\n";
+    logAllocation(obj);
 
 #ifdef DEBUG_LOG_GC
     std::cout << "[DEBUG] Allocated instance " <<  calculateObjectSize(obj) << " " << epochTime() << "\n";
@@ -83,8 +83,27 @@ Obj *Memory::allocateHeapInstance(ClassObj *klass, VM *vm) {
     return obj;
 }
 
+Obj *Memory::allocateAllocationObject(size_t kilobytes) {
+#ifdef DEBUG_STRESS_GC
+    collectGarbage(vm);
+#endif
+
+    char* memoryBlock = new char[kilobytes * 1024];
+    auto *obj = new AllocationObj(kilobytes, memoryBlock);
+    bytesAllocated += calculateObjectSize(obj);
+    logAllocation(obj);
+
+#ifdef DEBUG_LOG_GC
+    std::cout << "[DEBUG] Allocated allocation " <<  calculateObjectSize(obj) << " " << bytesAllocated << " " << epochTime() << "\n";
+#endif
+
+    heapObjects.push_back(obj);
+    return obj;
+}
+
 void Memory::freeAllHeapObjects() {
     for (Obj *obj : heapObjects){
+        bytesAllocated -= calculateObjectSize(obj);
         logDeallocation(obj);
         delete obj;
     }
@@ -185,12 +204,15 @@ void Memory::blackenObject(Obj *obj) {
             markObject(klass->name);
             break;
         }
-        case ObjType::INSTANCE:
-            auto *instance = dynamic_cast<InstanceObj*>(obj);
+        case ObjType::INSTANCE: {
+            auto *instance = dynamic_cast<InstanceObj *>(obj);
             markObject(instance->klass);
-            for (auto it = instance->fields.begin(); it != instance->fields.end(); it++){
+            for (auto it = instance->fields.begin(); it != instance->fields.end(); it++) {
                 markObject(it->second);
             }
+            break;
+        }
+        case ObjType::ALLOCATION:
             break;
     }
 }
@@ -206,8 +228,8 @@ void Memory::sweep() {
 #ifdef DEBUG_LOG_GC
             std::cout << "[DEBUG] Sweeped " << CLoxLiteral(obj) << " address " << obj << "\n";
 #endif
-            logDeallocation(obj);
             bytesAllocated -= calculateObjectSize(obj);
+            logDeallocation(obj);
             it = heapObjects.erase(it); //constant time because we are using a linked list
             delete obj;
         }
@@ -231,24 +253,39 @@ size_t Memory::calculateObjectSize(const Obj *obj) {
         return sizeof(*instance);
     } else if (const auto* function = dynamic_cast<const FunctionObj*>(obj)) {
         return sizeof(*function);
+    } else if (const auto* allocation = dynamic_cast<const AllocationObj*>(obj)) {
+        return allocation->kilobytes * 1024;
     }
 
-    return 0;
+    throw std::runtime_error("Unreachable");
+}
+
+void Memory::logAllocation(const Obj *obj) {
+    if (const auto* str = dynamic_cast<const StringObj*>(obj)){
+        std::clog << "Allocated string " << str->str << " " <<  calculateObjectSize(str)  << " " << bytesAllocated << " " << epochTime() << "\n";
+    } else if (const auto* klass = dynamic_cast<const ClassObj*>(obj)) {
+        std::clog << "Allocated class " << klass->name->str << " " <<   calculateObjectSize(klass)  << " " << bytesAllocated << " " << epochTime() << "\n";
+    } else if (const auto* instance = dynamic_cast<const InstanceObj*>(obj)) {
+        std::clog << "Allocated instance " << instance->klass->name->str << " " <<  calculateObjectSize(instance) << " " << bytesAllocated << " " << epochTime() << "\n";
+    } else if (const auto* function = dynamic_cast<const FunctionObj*>(obj)) {
+        std::clog << "Allocated function " << function->name->str << " " << calculateObjectSize(function)  << " " << bytesAllocated << " " << epochTime() << "\n";
+    } else if (const auto* allocation = dynamic_cast<const AllocationObj*>(obj)) {
+        std::clog << "Allocated allocation [noname] " << calculateObjectSize(allocation)  << " " << bytesAllocated << " "  <<  epochTime() << "\n";
+    }
 }
 
 void Memory::logDeallocation(const Obj *obj) {
     if (const auto* str = dynamic_cast<const StringObj*>(obj)){
-        std::clog << "Deallocated string " << str->str << " " <<  calculateObjectSize(str) << " " << str << " " << epochTime() << "\n";
+        std::clog << "Deallocated string " << str->str << " " <<  calculateObjectSize(str) << " " << bytesAllocated << " " << epochTime() << "\n";
     } else if (const auto* klass = dynamic_cast<const ClassObj*>(obj)) {
-        std::clog << "Deallocated class " << klass->name->str << " " << calculateObjectSize(klass) << " " << klass << " " << epochTime() << "\n";
+        std::clog << "Deallocated class " << klass->name->str << " " << calculateObjectSize(klass) << " " << bytesAllocated << " " << epochTime() << "\n";
     } else if (const auto* instance = dynamic_cast<const InstanceObj*>(obj)) {
-        std::clog << "Deallocated instance " << instance->klass->name << " " << calculateObjectSize(instance) << " " << instance << " " << epochTime() << "\n";
+        std::clog << "Deallocated instance " << instance->klass->name->str << " " << calculateObjectSize(instance) << " " << bytesAllocated << " " << epochTime() << "\n";
     } else if (const auto* function = dynamic_cast<const FunctionObj*>(obj)) {
-        std::clog << "Deallocated function " << sizeof(*function)  << " " <<  epochTime() << "\n";
+        std::clog << "Deallocated function [noname] " << calculateObjectSize(function)  << " " << bytesAllocated << " " <<  epochTime() << "\n";
+    } else if (const auto* allocation = dynamic_cast<const AllocationObj*>(obj)) {
+        std::clog << "Deallocated allocation [noname] " << calculateObjectSize(allocation)  << " " << bytesAllocated << " " <<  epochTime() << "\n";
     }
-
-
-
 }
 
 

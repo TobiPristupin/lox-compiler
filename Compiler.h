@@ -106,6 +106,7 @@ private:
     void parseOr(bool canAssign);
     void call(bool canAssign);
     void dot(bool canAssign);
+    void allocate(bool canAssign);
 
     void parseFunction(FunctionType type);
 
