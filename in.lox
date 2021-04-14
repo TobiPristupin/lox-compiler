@@ -1,13 +1,8 @@
 class Node {}
 
-var a = Node();
-var b = Node();
-a.next = b;
-a.memory = allocate 10000;
-b.next = a;
-b.memory = allocate 10000;
 
-a = 0;
-b = 0;
-
-
+var head = Node();
+head.next = Node();
+head.next.next = Node();
+head.next.next.next = head;
+head = nil;

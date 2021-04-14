@@ -23,8 +23,13 @@ auto getEpochTimeMillis(){
 }
 
 int main(int argc, char *argv[]) {
+    if (argc != 3){
+        displayCLoxUsage();
+        return 0;
+    }
+
 #ifdef LOG_HEAP
-    std::ofstream out("/home/pristu/Documents/cpp/clox/heap_log.txt");
+    std::ofstream out(argv[2]);
     auto old_rdbuf = std::clog.rdbuf();
     std::clog.rdbuf(out.rdbuf());
     std::clog << getEpochTimeMillis() << "\n";
@@ -32,14 +37,7 @@ int main(int argc, char *argv[]) {
 
     ExecutionResult result;
 
-    if (argc > 2) {
-        displayCLoxUsage();
-        result = ExecutionResult::OK;
-    } else if (argc == 2) {
-        result = runScript(argv[1]);
-    } else {
-        result = runRepl();
-    }
+    result = runScript(argv[1]);
 
     int exitCode;
 
@@ -134,7 +132,7 @@ ExecutionResult runCode(const std::string &code){
 }
 
 void displayCLoxUsage(){
-    std::cout << "Usage: clox [script]\n";
+    std::cout << "Usage: clox [script] [GC Log File]\n";
 }
 
 

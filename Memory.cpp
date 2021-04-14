@@ -105,20 +105,14 @@ void Memory::freeAllHeapObjects() {
 
 void Memory::collectGarbage(Obj *obj) {
 #ifdef DEBUG_LOG_GC
-    std::cout << "[DEBUG] GC begin\n";
     std::cout << "[DEBUG] Deleted " << CLoxLiteral(obj) << "\n";
 #endif
 
     bytesAllocated -= calculateObjectSize(obj);
-    logDeallocation(obj);
     heapObjects.erase(std::remove(heapObjects.begin(), heapObjects.end(), obj), heapObjects.end());
     decreaseRefCountOfNeighbors(obj);
+    logDeallocation(obj);
     delete obj;
-
-#ifdef DEBUG_LOG_GC
-    std::cout << "[DEBUG] GC end\n";
-#endif
-
 }
 
 void Memory::decreaseRefCountOfNeighbors(Obj *obj) {
