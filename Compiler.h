@@ -55,6 +55,7 @@ public:
 
     std::vector<Variable> locals;
     int currentScopeDepth = 0;
+    bool currentlyInitializingLocal = false;
 };
 
 class Compiler {

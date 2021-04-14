@@ -19,6 +19,8 @@ Compiler::Compiler() {
     functionType = FunctionType::SCRIPT;
     StringObj *name = dynamic_cast<StringObj*>(Memory::allocateHeapString("mainCompilerFunction"));
     function = dynamic_cast<FunctionObj*>(Memory::allocateHeapFunction(name, new Chunk(), 0));
+    name->refs = -1; //set to -1 to prevent garbage collection
+    function->refs = -1;
 
     localVariables.locals.emplace_back(Token(TokenType::IDENTIFIER, "", 0), 0);
 
@@ -116,7 +118,11 @@ void Compiler::varDeclaration() {
     std::byte offset = parseVariableName();
 
     if (match(TokenType::EQUAL)){
+        if (localVariables.currentScopeDepth > 0){
+            localVariables.currentlyInitializingLocal = true;
+        }
         expression();
+        localVariables.currentlyInitializingLocal = false;
     } else {
         emitByte(OpCode::OP_NIL); //If the user did not provide an initializer, use nil
     }
@@ -397,6 +403,7 @@ void Compiler::addLocalVariable(const Token &name) {
 
 std::byte Compiler::emitIdentifierConstant(const Token &identifier) {
     Obj* obj = Memory::allocateHeapString(identifier.lexeme);
+    obj->refs = -1;
     return emitConstant(CLoxLiteral(obj));
 }
 

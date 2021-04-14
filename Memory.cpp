@@ -3,15 +3,9 @@
 #include "Memory.h"
 
 //#define DEBUG_STRESS_GC //Run the GC after every allocation
-//#define DEBUG_LOG_GC
-//Reset every object to white after the marking phase so every GC cycle starts clean. Has no effect on a stop the world
-//collector because marked objects will be freed, but can be useful for debugging.
-//#define UNMARK_OBJECTS
+#define DEBUG_LOG_GC
 
 std::vector<Obj*> Memory::heapObjects = std::vector<Obj*>();
-std::stack<Obj*> Memory::grayObjects = std::stack<Obj*>();
-size_t Memory::nextGCByteThreshold = 200;
-size_t Memory::heapGrowFactor = 1;
 size_t Memory::bytesAllocated = 0;
 
 auto Memory::epochTime() {
@@ -109,28 +103,17 @@ void Memory::freeAllHeapObjects() {
     }
 }
 
-void Memory::collectGarbage(VM *vm) {
+void Memory::collectGarbage(Obj *obj) {
 #ifdef DEBUG_LOG_GC
     std::cout << "[DEBUG] GC begin\n";
+    std::cout << "[DEBUG] Deleted " << CLoxLiteral(obj) << "\n";
 #endif
 
-    if (vm == nullptr){
-#ifdef DEBUG_LOG_GC
-        std::cout << "[DEBUG] GC end\n";
-#endif
-        return;
-    }
-
-    markRoots(vm);
-    traceReferences();
-    sweep();
-    nextGCByteThreshold = bytesAllocated * heapGrowFactor;
-
-#ifdef UNMARK_OBJECTS
-    for (Obj *obj : heapObjects){
-        obj->marked = false;
-    }
-#endif
+    bytesAllocated -= calculateObjectSize(obj);
+    logDeallocation(obj);
+    heapObjects.erase(std::remove(heapObjects.begin(), heapObjects.end(), obj), heapObjects.end());
+    decreaseRefCountOfNeighbors(obj);
+    delete obj;
 
 #ifdef DEBUG_LOG_GC
     std::cout << "[DEBUG] GC end\n";
@@ -138,105 +121,47 @@ void Memory::collectGarbage(VM *vm) {
 
 }
 
-void Memory::markRoots(VM *vm) {
-    for (CLoxLiteral &obj : vm->stack){
-        markObject(obj);
+void Memory::decreaseRefCountOfNeighbors(Obj *obj) {
+    const auto* instance = dynamic_cast<const InstanceObj*>(obj);
+    if (!instance){
+        return; //only instance objects can point to other objects in the heap
     }
 
-    for (auto it = vm->globals.begin(); it != vm->globals.end(); it++){
-        markObject(it->second);
+    for (const auto &field : instance->fields){
+        decrementRefCount(field.second);
     }
+
 }
 
-void Memory::traceReferences() {
-    while (!grayObjects.empty()){
-        Obj *obj = grayObjects.top();
-        grayObjects.pop();
-
-        blackenObject(obj);
-    }
-}
-
-void Memory::markObject(CLoxLiteral &literal) {
-    if (!literal.isObj()){ //value in the stack not an object. Could be an int or boolean for example
+void Memory::incrementRefCount(const CLoxLiteral &value) {
+    if (!value.isObj()){
         return;
     }
 
-    Obj* obj = literal.getObj();
-    if (obj == nullptr){ //literal will not always contain an object
+    Obj* o  = value.getObj();
+    o->refs += 1;
+
+#ifdef DEBUG_LOG_GC
+    std::cout << "[DEBUG] Incremented refcount of " << value << " from " << o->refs-1 << " to " << o->refs << "\n";
+#endif
+}
+
+void Memory::decrementRefCount(const CLoxLiteral &value) {
+    if (!value.isObj()){
         return;
     }
 
-    markObject(obj);
-}
-
-void Memory::markObject(Obj *obj) {
-    if (obj->marked){
-        return; //Avoid cycles
-    }
-
-    obj->marked = true;
-    grayObjects.push(obj);
+    Obj* o  = value.getObj();
+    o->refs -= 1;
 
 #ifdef DEBUG_LOG_GC
-    std::cout << "[DEBUG] Marking object " << CLoxLiteral(obj) << " address " << obj << "\n";
+    std::cout << "[DEBUG] Decremented refcount of " << value << " from " << o->refs+1 << " to " << o->refs << "\n";
 #endif
-}
 
-
-void Memory::blackenObject(Obj *obj) {
-#ifdef DEBUG_LOG_GC
-    std::cout << "[DEBUG] Blackened object " << CLoxLiteral(obj) << " address " << obj << "\n";
-#endif
-    switch (obj->type) {
-        case ObjType::STRING:
-            break;
-        case ObjType::FUNCTION: {
-            auto *function = dynamic_cast<FunctionObj *>(obj);
-            markObject(function->name);
-            for (CLoxLiteral &literal : function->chunk->constants){
-                markObject(literal);
-            }
-            break;
-        }
-        case ObjType::CLASS: {
-            auto *klass = dynamic_cast<ClassObj*>(obj);
-            markObject(klass->name);
-            break;
-        }
-        case ObjType::INSTANCE: {
-            auto *instance = dynamic_cast<InstanceObj *>(obj);
-            markObject(instance->klass);
-            for (auto it = instance->fields.begin(); it != instance->fields.end(); it++) {
-                markObject(it->second);
-            }
-            break;
-        }
-        case ObjType::ALLOCATION:
-            break;
+    if (o->refs == 0){
+        collectGarbage(o);
     }
 }
-
-void Memory::sweep() {
-    auto it = heapObjects.begin();
-    while (it != heapObjects.end()){
-        Obj *obj = *it;
-        if (obj->marked) {
-            obj->marked = false;
-            ++it;
-        } else {
-#ifdef DEBUG_LOG_GC
-            std::cout << "[DEBUG] Sweeped " << CLoxLiteral(obj) << " address " << obj << "\n";
-#endif
-            bytesAllocated -= calculateObjectSize(obj);
-            logDeallocation(obj);
-            it = heapObjects.erase(it); //constant time because we are using a linked list
-            delete obj;
-        }
-    }
-}
-
-
 
 /*Calculates estimates of the memory usage of every object. Their implementations depend on each other to avoid
  * double counting. For example, the size of an instance on the heap is the size instance object itself + the size of the

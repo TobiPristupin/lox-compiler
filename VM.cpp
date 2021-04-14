@@ -107,7 +107,6 @@ ExecutionResult VM::execute(FunctionObj *function) {
             }
 
             case OpCode::OP_CLASS: {
-                runGCIfNecessary();
                 pushStack(CLoxLiteral(Memory::allocateHeapClass(readConstantAsStringObj(), this)));
                 break;
             }
@@ -116,7 +115,6 @@ ExecutionResult VM::execute(FunctionObj *function) {
                 CLoxLiteral obj = popStack();
                 assert(obj.isObj() && obj.getObj()->isClass());
                 auto *classObj = dynamic_cast<ClassObj*>(obj.getObj());
-                runGCIfNecessary();
                 pushStack(CLoxLiteral(Memory::allocateHeapInstance(classObj, this)));
                 break;
             }
@@ -132,7 +130,14 @@ ExecutionResult VM::execute(FunctionObj *function) {
                 }
 
                 auto *instanceObj = dynamic_cast<InstanceObj*>(literal.getObj());
+
+                if (instanceObj->fields.find(strObj->str) != instanceObj->fields.end()){
+                    Memory::decrementRefCount(instanceObj->fields[strObj->str]);
+                }
+
                 instanceObj->fields[strObj->str] = value;
+                Memory::incrementRefCount(value);
+
                 pushStack(value);
                 break;
             }
@@ -160,7 +165,6 @@ ExecutionResult VM::execute(FunctionObj *function) {
             case OpCode::OP_ALLOCATE: {
                 CLoxLiteral kilobytes = popStack();
                 assert(kilobytes.isNumber());
-                runGCIfNecessary();
                 Obj *obj = Memory::allocateAllocationObject(kilobytes.getNumber());
                 pushStack(CLoxLiteral(obj));
             }
@@ -184,7 +188,6 @@ void VM::add() {
     } else if (a.isObj() && b.isObj() && a.getObj()->isString() && b.getObj()->isString()){
         auto *aObj = dynamic_cast<StringObj*>(a.getObj());
         auto *bObj = dynamic_cast<StringObj*>(b.getObj());
-        runGCIfNecessary();
         Obj* cObj = Memory::allocateHeapString(aObj->str + bObj->str, this);
         pushStack(CLoxLiteral(cObj));
     } else {
@@ -304,6 +307,7 @@ void VM::defineGlobal() {
         throw LoxRuntimeError("Cannot redefine global variable '" + name + "' ", currentFrame.function->chunk->readLine(currentFrame.programCounter));
     }
     globals[name] = popStack();
+    Memory::incrementRefCount(globals[name]);
     popStack(); //pop variable identifier from stack
 }
 
@@ -321,7 +325,10 @@ void VM::setGlobal() {
     if (globals.find(name) == globals.end()){
         throw LoxRuntimeError("Undefined variable '" + name + "'", readChunkLine(currentFrame.programCounter));
     }
+
+    Memory::decrementRefCount(globals[name]);
     globals[name] = popStack();
+    Memory::incrementRefCount(globals[name]);
 }
 
 void VM::getLocal() {
@@ -331,7 +338,9 @@ void VM::getLocal() {
 
 void VM::setLocal() {
     uint8_t localIndex = readOneByteOffset();
+    Memory::decrementRefCount(stack.at(localIndex));
     stack.at(localIndex) = stack.back();
+    Memory::incrementRefCount(stack.at(localIndex));
 }
 
 CLoxLiteral VM::readConstant() {
@@ -381,11 +390,7 @@ int VM::readChunkLine(int offset) {
     return currentChunk()->readLine(offset);
 }
 
-void VM::runGCIfNecessary() {
-    if (Memory::bytesAllocated > Memory::nextGCByteThreshold){
-        Memory::collectGarbage(this);
-    }
-}
+
 
 void VM::printDebugInfo(int offset) {
     std::cout << "[DEBUG]";

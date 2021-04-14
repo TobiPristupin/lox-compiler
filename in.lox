@@ -2,11 +2,12 @@ class Node {}
 
 var a = Node();
 var b = Node();
-var c = Node();
 a.next = b;
-b.next = c;
-c.next = a;
+a.memory = allocate 10000;
+b.next = a;
+b.memory = allocate 10000;
 
-var a = "aa" + "bb"
+a = 0;
+b = 0;
 
-print a.next.next.next.next;
+

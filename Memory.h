@@ -10,10 +10,7 @@
 class Memory {
 public:
     static std::vector<Obj*> heapObjects;
-    static std::stack<Obj*> grayObjects;
     static size_t bytesAllocated;
-    static size_t nextGCByteThreshold;
-    static size_t heapGrowFactor;
 
     static Obj* allocateHeapString(std::string str, VM *vm = nullptr);
     static Obj* allocateHeapClass(StringObj *name, VM *vm = nullptr);
@@ -21,17 +18,20 @@ public:
     static Obj* allocateHeapFunction(StringObj *name, Chunk *chunk, int arity, VM *vm = nullptr);
     static Obj* allocateAllocationObject(size_t kilobytes);
     static void freeAllHeapObjects();
-    static void collectGarbage(VM *vm = nullptr);
-    static void markRoots(VM *vm = nullptr);
-    static void markObject(CLoxLiteral &obj);
-    static void markObject(Obj *obj);
-    static void traceReferences();
-    static void blackenObject(Obj *obj);
-    static void sweep();
+    static void collectGarbage(Obj* obj);
+
+    /*not necessary for CloxLiteral value to be an Obj literal allocated in the heap, they may be a CloxLiteral holding
+     * an int or bool for example. These method will handle those cases gracefully by not updating their refcount
+     * (because they have no refcount)
+     */
+    static void incrementRefCount(const CLoxLiteral &value);
+    static void decrementRefCount(const CLoxLiteral &value);
 
     static size_t calculateObjectSize(const Obj *obj);
 
 private:
+    static void decreaseRefCountOfNeighbors(Obj *obj);
+
     static auto epochTime();
     static void logDeallocation(const Obj *obj);
     static void logAllocation(const Obj *obj);

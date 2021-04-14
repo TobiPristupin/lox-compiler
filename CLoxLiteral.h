@@ -54,7 +54,7 @@ enum class ObjType {
 class Obj {
 public:
     ObjType type;
-    bool marked = false;
+    int refs = 0;
 
     explicit Obj(ObjType type);
     virtual ~Obj() = 0;
