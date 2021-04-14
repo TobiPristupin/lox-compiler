@@ -7,6 +7,6 @@ a.next = b;
 b.next = c;
 c.next = a;
 
-var a = "aa" + "bb"
+a = "aa" + "bb";
 
-print a.next.next.next.next;
+print 10;
