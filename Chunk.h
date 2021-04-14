@@ -37,7 +37,8 @@ enum class OpCode  : uint8_t { //opcodes are internally represented as unsigned 
     OP_CALL,
     OP_GET_PROPERTY,
     OP_SET_PROPERTY,
-    OP_ALLOCATE
+    OP_ALLOCATE,
+    OP_COLLECT
 };
 
 class Chunk {

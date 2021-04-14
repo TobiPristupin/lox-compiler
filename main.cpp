@@ -23,7 +23,7 @@ auto getEpochTimeMillis(){
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 3){
+    if (argc != 5){
         displayCLoxUsage();
         return 0;
     }
@@ -34,6 +34,9 @@ int main(int argc, char *argv[]) {
     std::clog.rdbuf(out.rdbuf());
     std::clog << getEpochTimeMillis() << "\n";
 #endif
+
+    Memory::nextGCByteThreshold = std::stoi(argv[3]);
+    Memory::heapGrowFactor = std::stoi(argv[4]);
 
     ExecutionResult result;
 
@@ -132,7 +135,7 @@ ExecutionResult runCode(const std::string &code){
 }
 
 void displayCLoxUsage(){
-    std::cout << "Usage: clox [script] [GC Log File]\n";
+    std::cout << "Usage: clox [script] [GC Log File] [GC Byte Threshold] [GC Heap Grow Factor]\n";
 }
 
 

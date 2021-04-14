@@ -3,7 +3,7 @@
 #include "Memory.h"
 
 //#define DEBUG_STRESS_GC //Run the GC after every allocation
-//#define DEBUG_LOG_GC
+#define DEBUG_LOG_GC
 //Reset every object to white after the marking phase so every GC cycle starts clean. Has no effect on a stop the world
 //collector because marked objects will be freed, but can be useful for debugging.
 //#define UNMARK_OBJECTS

@@ -164,6 +164,10 @@ ExecutionResult VM::execute(FunctionObj *function) {
                 Obj *obj = Memory::allocateAllocationObject(kilobytes.getNumber());
                 pushStack(CLoxLiteral(obj));
             }
+            case OpCode::OP_COLLECT: {
+                Memory::collectGarbage(this);
+                break;
+            }
         }
 
 

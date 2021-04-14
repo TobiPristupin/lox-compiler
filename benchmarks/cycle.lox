@@ -1,0 +1,11 @@
+class Node {}
+
+var head = Node();
+head.next = Node();
+head.next.next = Node();
+head.next.next.next = head;
+
+head = 0;
+
+
+var c = allocate 2000;

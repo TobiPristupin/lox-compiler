@@ -93,6 +93,7 @@ private:
     void forStatement();
     void functionDeclaration();
     void classDeclaration();
+    void collectStatement();
     void expression();
 
     void number(bool canAssign);

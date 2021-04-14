@@ -104,6 +104,8 @@ std::string tokenTypeToString(TokenType type) {
             return "NEW";
         case TokenType::ALLOCATE:
             return "ALLOCATE";
+        case TokenType::COLLECT:
+            return "COLLECT";
     }
 
     return "unreachable";

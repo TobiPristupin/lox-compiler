@@ -146,6 +146,8 @@ void Compiler::statement() {
         expect(TokenType::SEMICOLON, "Expected ';' after return");
     } else if (match(TokenType::CLASS)){
         classDeclaration();
+    } else if (match(TokenType::COLLECT)) {
+        collectStatement();
     } else {
         expressionStatement();
     }
@@ -267,6 +269,11 @@ void Compiler::forStatement() {
     }
 
     endScope();
+}
+
+void Compiler::collectStatement() {
+    emitByte(OpCode::OP_COLLECT);
+    expect(TokenType::SEMICOLON, "Expected ';' after collect statement");
 }
 
 void Compiler::expressionStatement() {
