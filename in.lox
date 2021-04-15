@@ -1,8 +1,2 @@
-class Node {}
-
-
-var head = Node();
-head.next = Node();
-head.next.next = Node();
-head.next.next.next = head;
-head = nil;
+var a = "hey";
+a = 0;

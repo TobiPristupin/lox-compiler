@@ -33,7 +33,7 @@ private:
     static void decreaseRefCountOfNeighbors(Obj *obj);
 
     static auto epochTime();
-    static void logDeallocation(const Obj *obj);
+    static void logDeallocation(const Obj *obj, bool finalCleanup = false);
     static void logAllocation(const Obj *obj);
 
 };

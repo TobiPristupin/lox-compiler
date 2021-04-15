@@ -98,7 +98,7 @@ Obj *Memory::allocateAllocationObject(size_t kilobytes) {
 void Memory::freeAllHeapObjects() {
     for (Obj *obj : heapObjects){
         bytesAllocated -= calculateObjectSize(obj);
-        logDeallocation(obj);
+        logDeallocation(obj, true);
         delete obj;
     }
 }
@@ -193,18 +193,20 @@ void Memory::logAllocation(const Obj *obj) {
     }
 }
 
-void Memory::logDeallocation(const Obj *obj) {
+void Memory::logDeallocation(const Obj *obj, bool finalCleanup) {
+    //sweeped: GC collected. Deallocated: freed when program terminates (not by gc)
+    std::string message = finalCleanup ? "Deallocated" : "Sweeped";
+
     if (const auto* str = dynamic_cast<const StringObj*>(obj)){
-        std::clog << "Deallocated string " << str->str << " " <<  calculateObjectSize(str) << " " << bytesAllocated << " " << epochTime() << "\n";
+        std::clog << message << "  string " << str->str << " " <<  calculateObjectSize(str) << " " << bytesAllocated << " " << epochTime() << "\n";
     } else if (const auto* klass = dynamic_cast<const ClassObj*>(obj)) {
-        std::clog << "Deallocated class " << klass->name->str << " " << calculateObjectSize(klass) << " " << bytesAllocated << " " << epochTime() << "\n";
+        std::clog << message << " class " << klass->name->str << " " << calculateObjectSize(klass) << " " << bytesAllocated << " " << epochTime() << "\n";
     } else if (const auto* instance = dynamic_cast<const InstanceObj*>(obj)) {
-        std::clog << "Deallocated instance " << instance->klass->name->str << " " << calculateObjectSize(instance) << " " << bytesAllocated << " " << epochTime() << "\n";
+        std::clog << message << " instance " << instance->klass->name->str << " " << calculateObjectSize(instance) << " " << bytesAllocated << " " << epochTime() << "\n";
     } else if (const auto* function = dynamic_cast<const FunctionObj*>(obj)) {
-        std::clog << "Deallocated function [noname] " << calculateObjectSize(function)  << " " << bytesAllocated << " " <<  epochTime() << "\n";
+        std::clog << message << " function [noname] " << calculateObjectSize(function)  << " " << bytesAllocated << " " <<  epochTime() << "\n";
     } else if (const auto* allocation = dynamic_cast<const AllocationObj*>(obj)) {
-        std::clog << "Deallocated allocation [noname] " << calculateObjectSize(allocation)  << " " << bytesAllocated << " " <<  epochTime() << "\n";
+        std::clog << message << " allocation [noname] " << calculateObjectSize(allocation)  << " " << bytesAllocated << " " <<  epochTime() << "\n";
     }
 }
-
 
