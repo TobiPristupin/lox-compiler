@@ -33,7 +33,8 @@ public:
 
 private:
     static auto epochTime();
-    static void logDeallocation(const Obj *obj);
+    //finalCleanup = true if this is the final object freeing when the program terminates, false if this is a regular gc cycle
+    static void logDeallocation(const Obj *obj, bool finalCleanup = false);
     static void logAllocation(const Obj *obj);
 
 };
