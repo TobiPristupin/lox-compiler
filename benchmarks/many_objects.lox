@@ -1,0 +1,18 @@
+class Node {}
+
+var head = Node();
+head.memory = allocate 1;
+
+var current = head;
+for (var i = 0; i < 1000; i = i + 1){
+    current.next = Node();
+    current = current.next;
+    current.memory = allocate 1;
+}
+
+var x = allocate 1;
+for (var i = 0; i < 200; i = i + 1){
+    x = allocate 1;
+    collect;
+}
+

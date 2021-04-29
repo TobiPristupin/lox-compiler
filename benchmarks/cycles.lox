@@ -6,5 +6,4 @@ head.next.next = Node();
 head.next.next.next = head;
 
 head = nil;
-collect;
-
+//collect;
