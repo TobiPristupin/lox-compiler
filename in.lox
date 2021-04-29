@@ -1,3 +1,6 @@
-var a = allocate 100;
-a = allocate 200;
+var x = allocate 1;
+for (var i = 0; i < 10; i = i + 1){
+    x = allocate 1;
+}
+
 collect;

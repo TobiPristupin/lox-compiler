@@ -107,7 +107,7 @@ ExecutionResult VM::execute(FunctionObj *function) {
             }
 
             case OpCode::OP_CLASS: {
-                runGCIfNecessary();
+                runGC();
                 pushStack(CLoxLiteral(Memory::allocateHeapClass(readConstantAsStringObj(), this)));
                 break;
             }
@@ -116,7 +116,7 @@ ExecutionResult VM::execute(FunctionObj *function) {
                 CLoxLiteral obj = popStack();
                 assert(obj.isObj() && obj.getObj()->isClass());
                 auto *classObj = dynamic_cast<ClassObj*>(obj.getObj());
-                runGCIfNecessary();
+                runGC();
                 pushStack(CLoxLiteral(Memory::allocateHeapInstance(classObj, this)));
                 break;
             }
@@ -160,12 +160,13 @@ ExecutionResult VM::execute(FunctionObj *function) {
             case OpCode::OP_ALLOCATE: {
                 CLoxLiteral kilobytes = popStack();
                 assert(kilobytes.isNumber());
-                runGCIfNecessary();
+                runGC();
                 Obj *obj = Memory::allocateAllocationObject(kilobytes.getNumber());
                 pushStack(CLoxLiteral(obj));
+                break;
             }
             case OpCode::OP_COLLECT: {
-                Memory::collectGarbage(this);
+                Memory::collectGarbage(this, true);
                 break;
             }
         }
@@ -188,7 +189,7 @@ void VM::add() {
     } else if (a.isObj() && b.isObj() && a.getObj()->isString() && b.getObj()->isString()){
         auto *aObj = dynamic_cast<StringObj*>(a.getObj());
         auto *bObj = dynamic_cast<StringObj*>(b.getObj());
-        runGCIfNecessary();
+        runGC();
         Obj* cObj = Memory::allocateHeapString(aObj->str + bObj->str, this);
         pushStack(CLoxLiteral(cObj));
     } else {
@@ -385,10 +386,8 @@ int VM::readChunkLine(int offset) {
     return currentChunk()->readLine(offset);
 }
 
-void VM::runGCIfNecessary() {
-    if (Memory::bytesAllocated > Memory::nextGCByteThreshold){
-        Memory::collectGarbage(this);
-    }
+void VM::runGC() {
+    Memory::collectGarbage(this);
 }
 
 void VM::printDebugInfo(int offset) {

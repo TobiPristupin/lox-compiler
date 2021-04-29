@@ -116,7 +116,7 @@ ExecutionResult runCode(const std::string &code){
     Compiler compiler;
     bool successFlag;
     FunctionObj *function = compiler.compile(tokens, successFlag);
-//    DebugUtils::printChunk(function->chunk, "main");
+    DebugUtils::printChunk(function->chunk, "main");
 
     if (!successFlag){
         return ExecutionResult::COMPILE_ERROR;

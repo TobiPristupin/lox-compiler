@@ -21,7 +21,7 @@ public:
     static Obj* allocateHeapFunction(StringObj *name, Chunk *chunk, int arity, VM *vm = nullptr);
     static Obj* allocateAllocationObject(size_t kilobytes);
     static void freeAllHeapObjects();
-    static void collectGarbage(VM *vm = nullptr);
+    static void collectGarbage(VM *vm = nullptr, bool force=false);
     static void markRoots(VM *vm = nullptr);
     static void markObject(CLoxLiteral &obj);
     static void markObject(Obj *obj);

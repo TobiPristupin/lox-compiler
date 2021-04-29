@@ -109,7 +109,11 @@ void Memory::freeAllHeapObjects() {
     }
 }
 
-void Memory::collectGarbage(VM *vm) {
+void Memory::collectGarbage(VM *vm, bool force) {
+    if (!force && bytesAllocated < nextGCByteThreshold){
+        return;
+    }
+
 #ifdef DEBUG_LOG_GC
     std::cout << "[DEBUG] GC begin\n";
 #endif

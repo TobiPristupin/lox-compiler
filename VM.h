@@ -64,7 +64,7 @@ private:
     uint8_t readOneByteOffset();
     int readChunkLine(int offset);
 
-    void runGCIfNecessary();
+    void runGC();
 
     void printDebugInfo(int offset);
 
