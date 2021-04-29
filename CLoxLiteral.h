@@ -55,6 +55,7 @@ class Obj {
 public:
     ObjType type;
     bool marked = false;
+    uint8_t age = 0;
 
     explicit Obj(ObjType type);
     virtual ~Obj() = 0;

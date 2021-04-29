@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     std::clog << getEpochTimeMillis() << "\n";
 #endif
 
-    Memory::nextGCByteThreshold = std::stoi(argv[3]);
-    Memory::heapGrowFactor = std::stoi(argv[4]);
+//    Memory::nextGCByteThreshold = std::stoi(argv[3]);
+//    Memory::heapGrowFactor = std::stoi(argv[4]);
 
     ExecutionResult result;
 

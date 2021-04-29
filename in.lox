@@ -1,6 +1,8 @@
 var x = allocate 1;
-for (var i = 0; i < 10; i = i + 1){
-    x = allocate 1;
-}
+var y = allocate 2;
+var z = allocate 3;
 
 collect;
+collect;
+
+var y = allocate 4;
