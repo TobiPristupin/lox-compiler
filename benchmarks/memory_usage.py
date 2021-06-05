@@ -33,7 +33,7 @@ plt.style.use('ggplot')
 
 fig, ax = plt.subplots()
 
-ax.plot(allocations[0] + sweeps[0] + deallocations[0], allocations[1] + sweeps[1] + deallocations[1], "--", color="grey")
+#ax.plot(allocations[0] + sweeps[0] + deallocations[0], allocations[1] + sweeps[1] + deallocations[1], "--", color="grey")
 
 ax.scatter(allocations[0], allocations[1], label="Allocation", color="blue", s=75)
 ax.scatter(sweeps[0], sweeps[1], label="GC Deletion", color="green", s=75)

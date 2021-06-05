@@ -1,0 +1,14 @@
+\contentsline {section}{\numberline {1}Project Overview}{1}%
+\contentsline {section}{\numberline {2}The Lox Language and Compiler}{2}%
+\contentsline {subsection}{\numberline {2.1}What is Lox}{2}%
+\contentsline {subsection}{\numberline {2.2}The Lox Compiler}{2}%
+\contentsline {section}{\numberline {3}Garbage Collection on Lox}{3}%
+\contentsline {subsection}{\numberline {3.1}Mark Sweep}{3}%
+\contentsline {subsection}{\numberline {3.2}Reference Counting}{4}%
+\contentsline {subsection}{\numberline {3.3}Benchmarking and Comparison}{4}%
+\contentsline {subsubsection}{\numberline {3.3.1}The \lstinline {collect and allocate} keywords}{4}%
+\contentsline {subsubsection}{\numberline {3.3.2}Cycles Benchmark}{4}%
+\contentsline {subsubsection}{\numberline {3.3.3}Large Heap Benchmark}{5}%
+\contentsline {subsubsection}{\numberline {3.3.4}Delayed Collection}{6}%
+\contentsline {section}{\numberline {4}Conclusion}{8}%
+\contentsline {subsection}{\numberline {4.1}Acknowledgement}{8}%
